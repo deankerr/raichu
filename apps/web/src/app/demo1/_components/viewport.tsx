@@ -1,3 +1,7 @@
+import { useAtom } from "jotai"
+import { useKeys } from "rooks"
+import { showViewportDecorationAtom } from "./store"
+
 function SequoiaWindow({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-md border bg-background [&>main]:flex-1 [&>main]:rounded-none [&>main]:border-none">
@@ -18,11 +22,17 @@ function SequoiaWindow({ children }: { children: React.ReactNode }) {
 
 export function Viewport({
   children,
-  decoration,
+  decoration: decorationProp,
 }: {
   children: React.ReactNode
   decoration?: boolean
 }) {
+  const [decoration, setDecoration] = useAtom(showViewportDecorationAtom) || decorationProp
+
+  useKeys(["AltLeft", "KeyV"], () => {
+    setDecoration(!decoration)
+  })
+
   return (
     <div className="grid h-svh overflow-hidden bg-black p-5">
       {decoration ? <SequoiaWindow>{children}</SequoiaWindow> : children}

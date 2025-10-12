@@ -1,5 +1,6 @@
 "use client"
 
+import { useAtom } from "jotai"
 import { CircleSlash2Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react"
 import { Chat } from "./_components/chat/chat"
 import {
@@ -11,6 +12,7 @@ import {
   ShellDockTabButton,
   ShellDockTabIconButton,
 } from "./_components/shell"
+import { leftSidebarOpenAtom } from "./_components/store"
 import { ThreadExplorer } from "./_components/thread-explorer/thread-explorer"
 import { Viewport } from "./_components/viewport"
 import { useWorkspace, WorkspaceProvider } from "./_components/workspace"
@@ -19,11 +21,12 @@ function PageContent() {
   const workspace = useWorkspace()
 
   const mainActiveTab = workspace.getActiveTab("main")
-  const isLeftDockOpen = workspace.isDockOpen("left")
+
+  const [isLeftSidebarOpen, setLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
 
   return (
     <Shell>
-      <ShellDockLeft className="bg-black/30" isOpen={isLeftDockOpen}>
+      <ShellDockLeft className="bg-black/30" isOpen={isLeftSidebarOpen}>
         <ShellDockTabBar>
           {workspace.state.tabs.left.map((panel) => (
             <ShellDockTabIconButton
@@ -43,12 +46,13 @@ function PageContent() {
 
       <ShellDock>
         <ShellDockTabBar>
+          {/* * left sidebar toggle */}
           <ShellDockTabIconButton
-            isActive={isLeftDockOpen}
-            label={isLeftDockOpen ? "Hide sidebar" : "Show sidebar"}
-            onClick={() => workspace.toggleDock("left")}
+            isActive={isLeftSidebarOpen}
+            label={isLeftSidebarOpen ? "Hide sidebar" : "Show sidebar"}
+            onClick={() => setLeftSidebarOpen(!isLeftSidebarOpen)}
           >
-            {isLeftDockOpen ? (
+            {isLeftSidebarOpen ? (
               <PanelLeftCloseIcon className="size-3.5" />
             ) : (
               <PanelLeftOpenIcon className="size-3.5" />

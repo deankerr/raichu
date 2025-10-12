@@ -5,7 +5,6 @@ import { ThreadExplorer } from "./thread-explorer/thread-explorer"
 
 // Core Types
 type TabArea = "left" | "main"
-type DockArea = "left"
 
 type WorkspaceComponentDef = {
   componentId: string
@@ -29,7 +28,6 @@ type WorkspaceState = {
   tabs: Record<TabArea, WorkspaceTab[]>
   activeTabIds: Record<TabArea, string | null>
   tabHistory: string[] // Track tab focus history for navigation
-  dockVisibility: Record<DockArea, boolean>
 }
 
 // Component Registry
@@ -78,8 +76,6 @@ type WorkspaceAction =
   | { type: "CLOSE_ALL_IN_AREA"; area: TabArea }
   | { type: "FOCUS_PREVIOUS_TAB" }
   | { type: "SWAP_TABS"; instanceId1: string; instanceId2: string }
-  | { type: "SET_DOCK_VISIBILITY"; dock: DockArea; isOpen: boolean }
-  | { type: "TOGGLE_DOCK"; dock: DockArea }
 
 function generateInstanceId(componentId: string) {
   // biome-ignore lint/style/noMagicNumbers: random int
@@ -362,28 +358,6 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
       return { ...state, tabs: newTabs }
     }
 
-    case "SET_DOCK_VISIBILITY": {
-      if (state.dockVisibility[action.dock] === action.isOpen) {
-        return state
-      }
-
-      return {
-        ...state,
-        dockVisibility: {
-          ...state.dockVisibility,
-          [action.dock]: action.isOpen,
-        },
-      }
-    }
-
-    case "TOGGLE_DOCK": {
-      return workspaceReducer(state, {
-        type: "SET_DOCK_VISIBILITY",
-        dock: action.dock,
-        isOpen: !state.dockVisibility[action.dock],
-      })
-    }
-
     default:
       return state
   }
@@ -403,9 +377,6 @@ function createInitialState(): WorkspaceState {
       main: null,
     },
     tabHistory: [threadsTab.instanceId],
-    dockVisibility: {
-      left: true,
-    },
   }
 }
 
@@ -415,9 +386,6 @@ const WorkspaceContext = createContext<{
   dispatch: React.Dispatch<WorkspaceAction>
   getTab: (instanceId: string) => WorkspaceTab | undefined
   getActiveTab: (area: TabArea) => WorkspaceTab | undefined
-  isDockOpen: (dock: DockArea) => boolean
-  setDockVisibility: (dock: DockArea, isOpen: boolean) => void
-  toggleDock: (dock: DockArea) => void
 } | null>(null)
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
@@ -447,19 +415,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     [state.tabs, state.activeTabIds]
   )
 
-  const isDockOpen = useCallback(
-    (dock: DockArea) => state.dockVisibility[dock],
-    [state.dockVisibility]
-  )
-
-  const setDockVisibility = useCallback((dock: DockArea, isOpen: boolean) => {
-    dispatch({ type: "SET_DOCK_VISIBILITY", dock, isOpen })
-  }, [])
-
-  const toggleDock = useCallback((dock: DockArea) => {
-    dispatch({ type: "TOGGLE_DOCK", dock })
-  }, [])
-
   return (
     <WorkspaceContext
       value={{
@@ -467,9 +422,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         dispatch,
         getTab,
         getActiveTab,
-        isDockOpen,
-        setDockVisibility,
-        toggleDock,
       }}
     >
       {children}
@@ -486,4 +438,4 @@ export function useWorkspace() {
 }
 
 // Export types for consumers
-export type { WorkspaceTab, WorkspaceState, TabArea, WorkspaceAction, DockArea }
+export type { WorkspaceTab, WorkspaceState, TabArea, WorkspaceAction }

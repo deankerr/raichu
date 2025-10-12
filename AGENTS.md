@@ -16,7 +16,8 @@
 - The app is currently designed for a single user only.
 
 - The backend utilises the Convex Agent component for standard chat management functionality. https://github.com/get-convex/agent
-- Legend State v3 beta: Legend-State is a super fast and powerful state library that enables fine-grained reactivity and easy automatic persistence. https://github.com/LegendApp/legend-state
+- jotai: https://github.com/pmndrs/jotai
+- rooks: https://github.com/imbhargav5/rooks
 - zod v4: https://github.com/colinhacks/zod
 - ai-elements: AI Elements is a component library and custom registry built on top of shadcn/ui to help you build AI-native applications faster. https://github.com/vercel/ai-elements
   - streamdown: A drop-in replacement for react-markdown, designed for AI-powered streaming. https://github.com/vercel/streamdown

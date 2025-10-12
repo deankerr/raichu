@@ -1,0 +1,25 @@
+{
+  "name": "@raichu/backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "convex dev",
+    "dev:setup": "convex dev --configure --until-success",
+    "dev:dashboard": "convex dashboard",
+    "check-types": "tsc --noEmit -p convex"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.49",
+    "@convex-dev/agent": "^0.2.10",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "convex": "^1.25.4",
+    "convex-helpers": "^0.1.104",
+    "zod": "^4.1.12"
+  }
+}

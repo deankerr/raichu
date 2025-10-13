@@ -1,5 +1,5 @@
 import { type LucideIcon, MessageSquareIcon, MessagesSquareIcon } from "lucide-react"
-import React, { createContext, type JSX, use, useCallback, useReducer } from "react"
+import React, { createContext, type JSX, use, useReducer } from "react"
 import { Chat } from "./chat/chat"
 import { ThreadExplorer } from "./thread-explorer/thread-explorer"
 
@@ -12,14 +12,12 @@ type WorkspaceComponentDef = {
   component: (props: any) => JSX.Element
   icon: LucideIcon
   componentName: string
-  singleton?: boolean // Only one instance allowed
 }
 
 type WorkspaceInstanceData = {
   instanceId: string
   title: string // Title to display in the tab
   props?: Record<string, unknown> // Props to pass to the component
-  metadata?: Record<string, unknown> // Additional tab metadata
 }
 
 type WorkspaceTab = WorkspaceComponentDef & WorkspaceInstanceData
@@ -27,7 +25,6 @@ type WorkspaceTab = WorkspaceComponentDef & WorkspaceInstanceData
 type WorkspaceState = {
   tabs: Record<TabArea, WorkspaceTab[]>
   activeTabIds: Record<TabArea, string | null>
-  tabHistory: string[] // Track tab focus history for navigation
 }
 
 // Component Registry
@@ -37,7 +34,6 @@ const componentRegistry: Record<string, WorkspaceComponentDef> = {
     component: ThreadExplorer,
     icon: MessagesSquareIcon,
     componentName: "Threads",
-    singleton: true,
   },
   chat: {
     componentId: "chat",
@@ -57,7 +53,6 @@ type WorkspaceAction =
     }
   | { type: "REMOVE_TAB"; instanceId: string }
   | { type: "FOCUS_TAB"; instanceId: string }
-  | { type: "MOVE_TAB"; instanceId: string; toArea: TabArea; toIndex?: number }
   | {
       type: "UPDATE_TAB_TITLE"
       instanceId: string
@@ -68,14 +63,6 @@ type WorkspaceAction =
       instanceId: string
       props: Record<string, unknown>
     }
-  | {
-      type: "UPDATE_TAB_METADATA"
-      instanceId: string
-      metadata: Record<string, unknown>
-    }
-  | { type: "CLOSE_ALL_IN_AREA"; area: TabArea }
-  | { type: "FOCUS_PREVIOUS_TAB" }
-  | { type: "SWAP_TABS"; instanceId1: string; instanceId2: string }
 
 function generateInstanceId(componentId: string) {
   // biome-ignore lint/style/noMagicNumbers: random int
@@ -113,26 +100,10 @@ function findTabLocation(
   return null
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: im a boss
 function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
   switch (action.type) {
     case "ADD_TAB": {
       const newTab = createTab(action.componentId, action.tab)
-
-      // Check singleton constraint
-      if (newTab.singleton) {
-        for (const area of ["left", "main"] as TabArea[]) {
-          const existing = state.tabs[area].find((t) => t.componentId === action.componentId)
-          if (existing) {
-            // Just focus the existing singleton
-            return workspaceReducer(state, {
-              type: "FOCUS_TAB",
-              instanceId: existing.instanceId,
-            })
-          }
-        }
-      }
-
       const area = action.area
 
       return {
@@ -145,7 +116,6 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
           ...state.activeTabIds,
           [area]: newTab.instanceId, // Auto-focus new tabs
         },
-        tabHistory: [...state.tabHistory, newTab.instanceId],
       }
     }
 
@@ -175,7 +145,6 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
           ...state.activeTabIds,
           [area]: newActiveId,
         },
-        tabHistory: state.tabHistory.filter((id) => id !== action.instanceId),
       }
     }
 
@@ -191,55 +160,6 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
           ...state.activeTabIds,
           [location.area]: action.instanceId,
         },
-        tabHistory: [
-          ...state.tabHistory.filter((id) => id !== action.instanceId),
-          action.instanceId,
-        ],
-      }
-    }
-
-    case "MOVE_TAB": {
-      const location = findTabLocation(state, action.instanceId)
-      if (!location) {
-        return state
-      }
-
-      const { area: fromArea } = location
-      const tab = state.tabs[fromArea].find((t) => t.instanceId === action.instanceId)
-      if (!tab) {
-        return state
-      }
-
-      const fromTabs = state.tabs[fromArea].filter((t) => t.instanceId !== action.instanceId)
-      const toTabs = [...state.tabs[action.toArea]]
-
-      // Insert at specific index or append
-      if (action.toIndex !== undefined && action.toIndex >= 0) {
-        toTabs.splice(action.toIndex, 0, tab)
-      } else {
-        toTabs.push(tab)
-      }
-
-      // Update active tabs
-      const newActiveIds = { ...state.activeTabIds }
-      if (fromArea === action.toArea) {
-        // Moving within same area, maintain focus
-      } else {
-        // Moving to different area
-        if (newActiveIds[fromArea] === action.instanceId) {
-          newActiveIds[fromArea] = fromTabs[0]?.instanceId || null
-        }
-        newActiveIds[action.toArea] = action.instanceId
-      }
-
-      return {
-        ...state,
-        tabs: {
-          ...state.tabs,
-          [fromArea]: fromTabs,
-          [action.toArea]: toTabs,
-        },
-        activeTabIds: newActiveIds,
       }
     }
 
@@ -281,83 +201,6 @@ function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): Works
       }
     }
 
-    case "UPDATE_TAB_METADATA": {
-      const location = findTabLocation(state, action.instanceId)
-      if (!location) {
-        return state
-      }
-
-      const { area } = location
-      return {
-        ...state,
-        tabs: {
-          ...state.tabs,
-          [area]: state.tabs[area].map((tab) =>
-            tab.instanceId === action.instanceId
-              ? { ...tab, metadata: { ...tab.metadata, ...action.metadata } }
-              : tab
-          ),
-        },
-      }
-    }
-
-    case "CLOSE_ALL_IN_AREA": {
-      return {
-        ...state,
-        tabs: {
-          ...state.tabs,
-          [action.area]: [],
-        },
-        activeTabIds: {
-          ...state.activeTabIds,
-          [action.area]: null,
-        },
-        tabHistory: state.tabHistory.filter(
-          (id) => !state.tabs[action.area].some((t) => t.instanceId === id)
-        ),
-      }
-    }
-
-    case "FOCUS_PREVIOUS_TAB": {
-      const previousId = state.tabHistory.at(-2)
-      if (!previousId) {
-        return state
-      }
-      return workspaceReducer(state, {
-        type: "FOCUS_TAB",
-        instanceId: previousId,
-      })
-    }
-
-    case "SWAP_TABS": {
-      const loc1 = findTabLocation(state, action.instanceId1)
-      const loc2 = findTabLocation(state, action.instanceId2)
-      if (!(loc1 && loc2)) {
-        return state
-      }
-
-      const newTabs = { ...state.tabs }
-
-      if (loc1.area === loc2.area) {
-        // Swapping within same area
-        const area = loc1.area
-        const tabs = [...state.tabs[area]]
-        ;[tabs[loc1.index], tabs[loc2.index]] = [tabs[loc2.index], tabs[loc1.index]]
-        newTabs[area] = tabs
-      } else {
-        // Swapping between areas
-        const tab1 = state.tabs[loc1.area][loc1.index]
-        const tab2 = state.tabs[loc2.area][loc2.index]
-
-        newTabs[loc1.area] = [...state.tabs[loc1.area]]
-        newTabs[loc2.area] = [...state.tabs[loc2.area]]
-        newTabs[loc1.area][loc1.index] = tab2
-        newTabs[loc2.area][loc2.index] = tab1
-      }
-
-      return { ...state, tabs: newTabs }
-    }
-
     default:
       return state
   }
@@ -376,7 +219,6 @@ function createInitialState(): WorkspaceState {
       left: threadsTab.instanceId,
       main: null,
     },
-    tabHistory: [threadsTab.instanceId],
   }
 }
 
@@ -391,29 +233,23 @@ const WorkspaceContext = createContext<{
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(workspaceReducer, undefined, createInitialState)
 
-  const getTab = useCallback(
-    (instanceId: string) => {
-      for (const area of ["left", "main"] as TabArea[]) {
-        const tab = state.tabs[area].find((t) => t.instanceId === instanceId)
-        if (tab) {
-          return tab
-        }
+  const getTab = (instanceId: string) => {
+    for (const area of ["left", "main"] as TabArea[]) {
+      const tab = state.tabs[area].find((t) => t.instanceId === instanceId)
+      if (tab) {
+        return tab
       }
-      return
-    },
-    [state.tabs]
-  )
+    }
+    return
+  }
 
-  const getActiveTab = useCallback(
-    (area: TabArea) => {
-      const activeId = state.activeTabIds[area]
-      if (!activeId) {
-        return
-      }
-      return state.tabs[area].find((t) => t.instanceId === activeId)
-    },
-    [state.tabs, state.activeTabIds]
-  )
+  const getActiveTab = (area: TabArea) => {
+    const activeId = state.activeTabIds[area]
+    if (!activeId) {
+      return
+    }
+    return state.tabs[area].find((t) => t.instanceId === activeId)
+  }
 
   return (
     <WorkspaceContext

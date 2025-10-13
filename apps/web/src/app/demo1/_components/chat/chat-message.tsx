@@ -26,6 +26,9 @@ const roleIcons = {
   system: <DroneIcon />,
 } as const
 
+const MIN_DECIMAL_PLACES = 2
+const MAX_DECIMAL_PLACES = 8
+
 export function ChatMessage({
   message,
   isLatestMessage,
@@ -34,7 +37,7 @@ export function ChatMessage({
   isLatestMessage: boolean
 }) {
   const deleteMessage = useMutation(api.chat.message.delete_)
-  const openrouter = getOpenRouterMetadata(message.parts?.[0])
+  const openrouter = getOpenRouterMetadata(message.parts)
   return (
     <div
       className="group relative"
@@ -100,6 +103,7 @@ export function ChatMessage({
               const toolPart = part as ToolUIPart<any>
               return (
                 <Tool
+                  className="mt-2"
                   defaultOpen={
                     toolPart.state === "output-available" || toolPart.state === "output-error"
                   }
@@ -144,37 +148,99 @@ export function ChatMessage({
         </Action>
 
         <div className="px-1 font-mono text-[10px] text-muted-foreground empty:hidden">
-          {openrouter && `${openrouter.model} via ${openrouter.provider}`}
+          {openrouter && `${openrouter.model} via ${openrouter.provider} `}
+          {openrouter && (
+            <>
+              {openrouter.usage.promptTokens > 0 &&
+                `Pr:${openrouter.usage.promptTokens.toLocaleString()}`}
+              {openrouter.usage.completionTokens > 0 &&
+                ` Co:${openrouter.usage.completionTokens.toLocaleString()}`}
+              {openrouter.usage.reasoningTokens > 0 &&
+                ` Re:${openrouter.usage.reasoningTokens.toLocaleString()}`}
+              {openrouter.usage.cachedTokens > 0 &&
+                ` Ca:${openrouter.usage.cachedTokens.toLocaleString()}`}
+              {openrouter.usage.cost > 0 &&
+                ` $${openrouter.usage.cost.toLocaleString("en-US", { minimumFractionDigits: MIN_DECIMAL_PLACES, maximumFractionDigits: MAX_DECIMAL_PLACES })}`}
+            </>
+          )}
         </div>
       </Actions>
     </div>
   )
 }
 
-const PartProviderMetadataSchema = z.object({
-  providerMetadata: z.object({
-    openrouter: z.object({
-      provider: z.string(),
-      model: z.string(),
-      usage: z.object({
-        completionTokens: z.number(),
-        completionTokensDetails: z.object({
-          reasoningTokens: z.number(),
-        }),
-        cost: z.number(),
-        promptTokens: z.number(),
-        promptTokensDetails: z.object({
-          cachedTokens: z.number(),
-        }),
-        totalTokens: z.number(),
+const OpenRouterMetadataSchema = z.object({
+  openrouter: z.object({
+    provider: z.string(),
+    model: z.string(),
+    usage: z.object({
+      completionTokens: z.number(),
+      completionTokensDetails: z.object({
+        reasoningTokens: z.number(),
       }),
+      cost: z.number(),
+      promptTokens: z.number(),
+      promptTokensDetails: z.object({
+        cachedTokens: z.number(),
+      }),
+      totalTokens: z.number(),
     }),
   }),
 })
 
-function getOpenRouterMetadata(part?: unknown) {
-  const parsed = PartProviderMetadataSchema.safeParse(part)
-  if (parsed.success) {
-    return parsed.data.providerMetadata.openrouter
+function extractOpenRouterMetadata(part: Record<string, unknown>) {
+  try {
+    if ("providerMetadata" in part) {
+      return OpenRouterMetadataSchema.parse(part.providerMetadata)
+    }
+
+    if ("callProviderMetadata" in part) {
+      return OpenRouterMetadataSchema.parse(part.callProviderMetadata)
+    }
+
+    return null
+  } catch (err) {
+    console.error(err)
+    return null
+  }
+}
+
+function getOpenRouterMetadata(parts: Record<string, unknown>[] = []) {
+  let totalPromptTokens = 0
+  let totalCompletionTokens = 0
+  let totalReasoningTokens = 0
+  let totalCachedTokens = 0
+  let totalCost = 0
+  let lastModel = ""
+  let provider = ""
+
+  for (const part of parts) {
+    const metadata = extractOpenRouterMetadata(part)?.openrouter
+    if (metadata) {
+      totalPromptTokens += metadata.usage.promptTokens
+      totalCompletionTokens += metadata.usage.completionTokens
+      totalReasoningTokens += metadata.usage.completionTokensDetails?.reasoningTokens || 0
+      totalCachedTokens += metadata.usage.promptTokensDetails?.cachedTokens || 0
+      totalCost += metadata.usage.cost
+      lastModel = metadata.model
+      provider = metadata.provider
+    }
+  }
+
+  if (!lastModel) {
+    return null
+  }
+
+  return {
+    provider,
+    model: lastModel,
+    usage: {
+      promptTokens: totalPromptTokens,
+      completionTokens: totalCompletionTokens,
+      reasoningTokens: totalReasoningTokens,
+      cachedTokens: totalCachedTokens,
+      cost: totalCost,
+      totalTokens: totalPromptTokens + totalCompletionTokens,
+    },
   }
 }

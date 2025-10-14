@@ -11,14 +11,14 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/node": "^24.7.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.7.2",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.49",
+    "@ai-sdk/openai": "^2.0.52",
     "@convex-dev/agent": "^0.2.10",
     "@openrouter/ai-sdk-provider": "^1.2.0",
-    "convex": "^1.25.4",
+    "convex": "^1.27.5",
     "convex-helpers": "^0.1.104",
     "zod": "^4.1.12"
   }

@@ -1,6 +1,6 @@
 import { api } from "@raichu/backend/convex/_generated/api"
 import { useMutation } from "convex/react"
-import { CodeIcon, TrashIcon } from "lucide-react"
+import { CodeIcon, ShareIcon, TrashIcon } from "lucide-react"
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "../workspace"
@@ -51,6 +51,14 @@ export function Chat({ instanceId, threadId }: ChatProps) {
           <Button onClick={() => console.log({ thread, messages })} size="icon-sm" variant="ghost">
             <CodeIcon />
           </Button>
+
+          {threadId !== "new" && thread && (
+            <Button asChild size="icon-sm" title="Share thread" variant="ghost">
+              <a href={`/share/${threadId}`} rel="noopener noreferrer" target="_blank">
+                <ShareIcon />
+              </a>
+            </Button>
+          )}
 
           <Button
             onClick={() => {

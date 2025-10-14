@@ -1,7 +1,7 @@
 import { optimisticallySendMessage } from "@convex-dev/agent/react"
 import { api } from "@raichu/backend/convex/_generated/api"
 import { useMutation } from "convex/react"
-import { useState } from "react"
+import { useAtom } from "jotai"
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -23,6 +23,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { chatModelIds } from "./data"
+import { useChatInputAtoms } from "./use-chat"
 
 type ChatInputProps = {
   threadId: string
@@ -30,13 +31,13 @@ type ChatInputProps = {
 }
 
 export function ChatInput({ threadId, onThreadCreated }: ChatInputProps) {
-  const [modelId, setModelId] = useState<string>(chatModelIds[0].value)
+  const [chatAtom] = useChatInputAtoms(threadId)
+  const [input, setInput] = useAtom(chatAtom.input)
+  const [modelId = chatModelIds[0].value, setModelId] = useAtom(chatAtom.modelId)
 
   const isNewChat = threadId === "new"
-  const [input, setInput] = useState("")
 
   const createThread = useMutation(api.chat.thread.create)
-
   const sendMessage = useMutation(api.chat.message.send).withOptimisticUpdate(
     optimisticallySendMessage(api.chat.messages.list)
   )

@@ -6,6 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function addEnvPrefix(title: string) {
-  const emoji = process.env.NEXT_PUBLIC_TITLE_PREFIX
+  const emoji = process.env.NEXT_PUBLIC_TITLE_PREFIX ?? ""
   return `${emoji}${title}`.trim()
 }

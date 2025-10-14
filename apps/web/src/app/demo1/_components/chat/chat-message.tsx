@@ -29,24 +29,63 @@ const roleIcons = {
 const MIN_DECIMAL_PLACES = 2
 const MAX_DECIMAL_PLACES = 8
 
+function MessageMetadata({
+  openrouter,
+  className,
+  ...props
+}: {
+  openrouter: ReturnType<typeof getOpenRouterMetadata>
+} & React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "px-1 py-1 font-mono text-[10px] text-muted-foreground empty:hidden",
+        className
+      )}
+      {...props}
+    >
+      {openrouter && (
+        <>
+          {`${openrouter.model} via ${openrouter.provider} `}
+          {openrouter.usage.promptTokens > 0 &&
+            `Input: ${openrouter.usage.promptTokens.toLocaleString()}`}
+          {openrouter.usage.completionTokens > 0 &&
+            ` Output: ${openrouter.usage.completionTokens.toLocaleString()}`}
+          {openrouter.usage.reasoningTokens > 0 &&
+            ` Reasoning: ${openrouter.usage.reasoningTokens.toLocaleString()}`}
+          {openrouter.usage.cachedTokens > 0 &&
+            ` Cache: ${openrouter.usage.cachedTokens.toLocaleString()}`}
+          {openrouter.usage.cost > 0 &&
+            ` $${openrouter.usage.cost.toLocaleString("en-US", { minimumFractionDigits: MIN_DECIMAL_PLACES, maximumFractionDigits: MAX_DECIMAL_PLACES })}`}
+        </>
+      )}
+    </div>
+  )
+}
+
 export function ChatMessage({
   message,
   isLatestMessage,
+  showActions = true,
+  className,
+  ...props
 }: {
   message: UIMessage
   isLatestMessage: boolean
-}) {
+  showActions?: boolean
+} & React.ComponentProps<"div">) {
   const deleteMessage = useMutation(api.chat.message.delete_)
   const openrouter = getOpenRouterMetadata(message.parts)
   return (
     <div
-      className="group relative"
+      className={cn("group relative", className)}
       data-message-role={message.role}
       data-slot="chat-message"
       key={message.key}
+      {...props}
     >
       {/* * name */}
-      <div className="mb-0.5 flex items-center gap-1 font-medium text-muted-foreground text-xs capitalize group-data-[message-role=user]:justify-end [&>svg]:size-3.5">
+      <div className="mb-1 flex items-center gap-1 font-medium text-muted-foreground text-xs capitalize group-data-[message-role=user]:justify-end [&>svg]:size-3.5">
         {message.agentName ?? message.role} {roleIcons[message.role]}
       </div>
 
@@ -110,7 +149,7 @@ export function ChatMessage({
                   key={`${message.id}-${i}`}
                 >
                   <ToolHeader state={toolPart.state} type={toolPart.type} />
-                  <ToolContent>
+                  <ToolContent className="[&_code]:text-xs">
                     <ToolInput input={toolPart.input} />
                     {(toolPart.state === "output-available" ||
                       toolPart.state === "output-error") && (
@@ -125,46 +164,34 @@ export function ChatMessage({
       })}
 
       {/* * Actions */}
-      <Actions className={cn("mt-0", message.role === "user" && "justify-end")}>
-        {message.role === "assistant" && isLatestMessage && (
-          <Action
-            disabled // TODO
-            label="Retry"
-            // onClick={() => regenerate()}
-          >
-            <RefreshCcwIcon className="size-3" />
-          </Action>
+      <div className="flex items-center gap-2 group-data-[message-role=user]:justify-end">
+        {showActions && (
+          <Actions className={cn("mt-0 shrink-0")}>
+            {message.role === "assistant" && isLatestMessage && (
+              <Action
+                disabled // TODO
+                label="Retry"
+                // onClick={() => regenerate()}
+              >
+                <RefreshCcwIcon className="size-3" />
+              </Action>
+            )}
+            <Action label="Copy" onClick={() => navigator.clipboard.writeText(message.text)}>
+              <CopyIcon className="size-3" />
+            </Action>
+
+            <Action label="Console" onClick={() => console.log(message)}>
+              <CodeIcon className="size-3" />
+            </Action>
+
+            <Action label="Delete" onClick={() => deleteMessage({ messageId: message.id })}>
+              <TrashIcon className="size-3" />
+            </Action>
+          </Actions>
         )}
-        <Action label="Copy" onClick={() => navigator.clipboard.writeText(message.text)}>
-          <CopyIcon className="size-3" />
-        </Action>
 
-        <Action label="Console" onClick={() => console.log(message)}>
-          <CodeIcon className="size-3" />
-        </Action>
-
-        <Action label="Delete" onClick={() => deleteMessage({ messageId: message.id })}>
-          <TrashIcon className="size-3" />
-        </Action>
-
-        <div className="px-1 font-mono text-[10px] text-muted-foreground empty:hidden">
-          {openrouter && `${openrouter.model} via ${openrouter.provider} `}
-          {openrouter && (
-            <>
-              {openrouter.usage.promptTokens > 0 &&
-                `Pr:${openrouter.usage.promptTokens.toLocaleString()}`}
-              {openrouter.usage.completionTokens > 0 &&
-                ` Co:${openrouter.usage.completionTokens.toLocaleString()}`}
-              {openrouter.usage.reasoningTokens > 0 &&
-                ` Re:${openrouter.usage.reasoningTokens.toLocaleString()}`}
-              {openrouter.usage.cachedTokens > 0 &&
-                ` Ca:${openrouter.usage.cachedTokens.toLocaleString()}`}
-              {openrouter.usage.cost > 0 &&
-                ` $${openrouter.usage.cost.toLocaleString("en-US", { minimumFractionDigits: MIN_DECIMAL_PLACES, maximumFractionDigits: MAX_DECIMAL_PLACES })}`}
-            </>
-          )}
-        </div>
-      </Actions>
+        <MessageMetadata openrouter={openrouter} />
+      </div>
     </div>
   )
 }
@@ -200,7 +227,7 @@ function extractOpenRouterMetadata(part: Record<string, unknown>) {
 
     return null
   } catch (err) {
-    console.error(err)
+    console.warn(err)
     return null
   }
 }

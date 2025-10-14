@@ -32,6 +32,7 @@ export function ChatConversation({
 
         {messages.results.map((message) => (
           <ChatMessage
+            className="py-6"
             isLatestMessage={message.id === messages.results.at(-1)?.id}
             key={message.id}
             message={message}

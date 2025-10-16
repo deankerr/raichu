@@ -19,6 +19,7 @@ import type * as playground from "../playground.js";
 import type * as todoLists from "../todoLists.js";
 import type * as todoTools from "../todoTools.js";
 import type * as todos from "../todos.js";
+import type * as utils from "../utils.js";
 
 import type {
   ApiFromModules,
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   todoLists: typeof todoLists;
   todoTools: typeof todoTools;
   todos: typeof todos;
+  utils: typeof utils;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
@@ -2893,4 +2895,5 @@ export declare const components: {
       };
     };
   };
+  stack_auth: {};
 };

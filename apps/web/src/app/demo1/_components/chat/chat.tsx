@@ -32,7 +32,7 @@ export function Chat({ instanceId, threadId }: ChatProps) {
         title: thread.title,
       })
     }
-  }, [tabTitle, thread, instanceId, workspace.dispatch])
+  }, [tabTitle, thread, instanceId, workspace])
 
   const onThreadCreated = (newThreadId: string) => {
     workspace.dispatch({

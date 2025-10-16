@@ -24,6 +24,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@raichu/backend": "workspace:*",
+    "@stackframe/stack": "^2.8.43",
     "@tanstack/react-form": "^1.23.7",
     "@xyflow/react": "^12.8.6",
     "ai": "^5.0.70",

@@ -18,6 +18,7 @@
     "@ai-sdk/openai": "^2.0.52",
     "@convex-dev/agent": "^0.2.10",
     "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@stackframe/stack": "^2.8.43",
     "convex": "^1.27.5",
     "convex-helpers": "^0.1.104",
     "zod": "^4.1.12"

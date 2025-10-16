@@ -12,11 +12,15 @@ export const send = mutation({
     modelId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const userData = await ctx.auth.getUserIdentity()
+    if (!userData) {
+      throw new Error("User not authenticated")
+    }
+    // TODO: auth check
+
     const { messageId } = await basicAgent.saveMessage(ctx, {
       threadId: args.threadId,
       prompt: args.prompt,
-      // we're in a mutation, so skip embeddings for now. They'll be generated
-      // lazily when streaming text.
       skipEmbeddings: true,
     })
 
@@ -55,7 +59,12 @@ export const streamAsync = internalAction({
 export const delete_ = mutation({
   args: { messageId: v.string() },
   handler: async (ctx, { messageId }) => {
-    console.log({ messageId })
+    const userData = await ctx.auth.getUserIdentity()
+    if (!userData) {
+      throw new Error("User not authenticated")
+    }
+    // TODO: auth check
+
     await basicAgent.deleteMessage(ctx, { messageId })
   },
 })

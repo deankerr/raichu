@@ -13,12 +13,13 @@
 
 - This is an experimental LLM chat app with a design inspired by Obsidian - but instead of notes, it's your conversations.
 - In the future we may have another content too. Try to keep the outer structure distinct from chat specific functionality.
-- The app is currently designed for a single user only.
 
-- The backend utilises the Convex Agent component for standard chat management functionality. https://github.com/get-convex/agent
+- convex: https://github.com/get-convex/convex-js/
+- convex agent component: https://github.com/get-convex/agent
 - jotai: https://github.com/pmndrs/jotai
 - rooks: https://github.com/imbhargav5/rooks
 - zod v4: https://github.com/colinhacks/zod
 - ai-elements: AI Elements is a component library and custom registry built on top of shadcn/ui to help you build AI-native applications faster. https://github.com/vercel/ai-elements
   - streamdown: A drop-in replacement for react-markdown, designed for AI-powered streaming. https://github.com/vercel/streamdown
   - use-stick-to-bottom: A lightweight React Hook intended mainly for AI chat applications, for smoothly sticking to bottom of messages. https://github.com/stackblitz-labs/use-stick-to-bottom
+- stack auth: https://docs.stack-auth.com/docs/next/overview

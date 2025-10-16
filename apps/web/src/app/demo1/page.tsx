@@ -1,5 +1,7 @@
 "use client"
 
+import { api } from "@raichu/backend/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { useAtom } from "jotai"
 import { CircleSlash2Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react"
 import { Chat } from "./_components/chat/chat"
@@ -23,6 +25,8 @@ function PageContent() {
   const mainActiveTab = workspace.getActiveTab("main")
 
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
+
+  const userData = useQuery(api.healthCheck.getUser)
 
   return (
     <Shell>
@@ -110,8 +114,12 @@ function PageContent() {
           </ShellDockContent>
         ) : (
           <ShellDockContent>
-            <div className="grid flex-1 place-content-center text-muted-foreground opacity-50">
+            <div className="flex flex-1 flex-col items-center justify-center gap-8 text-muted-foreground opacity-50">
               <CircleSlash2Icon />
+
+              <pre className="whitespace-pre-wrap font-mono text-xs">
+                USER: {JSON.stringify(userData, null, 2)}
+              </pre>
             </div>
           </ShellDockContent>
         )}
@@ -123,7 +131,7 @@ function PageContent() {
 export default function Page() {
   return (
     <WorkspaceProvider>
-      <Viewport>
+      <Viewport className="pt-12">
         <PageContent />
       </Viewport>
     </WorkspaceProvider>

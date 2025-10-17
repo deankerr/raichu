@@ -6,7 +6,7 @@ import { components } from "./_generated/api"
 import { todoTools } from "./todoTools"
 
 export const basicAgent = new Agent(components.agent, {
-  name: "Agent Greg",
+  name: "SmartRutter Home Assistant",
   languageModel: openrouter.chat("mistralai/mistral-small-3.2-24b-instruct"),
   textEmbeddingModel: openai.embedding("text-embedding-3-small"),
   instructions:

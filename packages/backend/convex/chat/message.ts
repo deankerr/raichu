@@ -1,22 +1,23 @@
-import { openrouter } from "@openrouter/ai-sdk-provider"
-import { v } from "convex/values"
+import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import { ConvexError, v } from "convex/values"
 import { internal } from "../_generated/api"
 import { internalAction, mutation } from "../_generated/server"
 import { basicAgent } from "../agent"
+import { stackServerApp } from "../lib/stack"
 
 // > save user message, schedule streaming response
 export const send = mutation({
   args: {
     prompt: v.string(),
     threadId: v.string(),
-    modelId: v.optional(v.string()),
+    modelId: v.string(),
   },
   handler: async (ctx, args) => {
     const userData = await ctx.auth.getUserIdentity()
     if (!userData) {
       throw new Error("User not authenticated")
     }
-    // TODO: auth check
+    // TODO: check ownership of thread
 
     const { messageId } = await basicAgent.saveMessage(ctx, {
       threadId: args.threadId,
@@ -28,6 +29,7 @@ export const send = mutation({
       threadId: args.threadId,
       promptMessageId: messageId,
       modelId: args.modelId,
+      userId: userData.subject,
     })
   },
 })
@@ -36,15 +38,43 @@ export const streamAsync = internalAction({
   args: {
     promptMessageId: v.string(),
     threadId: v.string(),
-    modelId: v.optional(v.string()),
+    modelId: v.string(),
+    userId: v.string(),
   },
-  handler: async (ctx, { promptMessageId, threadId, modelId }) => {
+  handler: async (ctx, { promptMessageId, threadId, modelId, userId }) => {
+    const stackUser = await stackServerApp.getUser(userId)
+    if (!stackUser) {
+      throw new ConvexError({
+        message: "User not found",
+      })
+    }
+
+    const openrouterApiKey = stackUser.serverMetadata?.openrouterApiKey
+    if (!openrouterApiKey) {
+      throw new ConvexError({
+        message: "OpenRouter API key not found",
+      })
+    }
+
+    const openrouter = createOpenRouter({
+      apiKey: openrouterApiKey,
+      compatibility: "strict",
+      extraBody: {
+        usage: {
+          include: true,
+        },
+        provider: {
+          data_collection: "allow",
+        },
+      },
+    })
+
     const result = await basicAgent.streamText(
       ctx,
       { threadId },
       {
         promptMessageId,
-        model: modelId ? openrouter.chat(modelId) : undefined,
+        model: openrouter.chat(modelId),
         temperature: 0.6,
       },
       // more custom delta options (`true` uses defaults)

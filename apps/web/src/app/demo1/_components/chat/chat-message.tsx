@@ -202,14 +202,18 @@ const OpenRouterMetadataSchema = z.object({
     model: z.string(),
     usage: z.object({
       completionTokens: z.number(),
-      completionTokensDetails: z.object({
-        reasoningTokens: z.number(),
-      }),
-      cost: z.number(),
+      completionTokensDetails: z
+        .object({
+          reasoningTokens: z.number(),
+        })
+        .optional(),
+      cost: z.number().optional(),
       promptTokens: z.number(),
-      promptTokensDetails: z.object({
-        cachedTokens: z.number(),
-      }),
+      promptTokensDetails: z
+        .object({
+          cachedTokens: z.number(),
+        })
+        .optional(),
       totalTokens: z.number(),
     }),
   }),
@@ -248,7 +252,7 @@ function getOpenRouterMetadata(parts: Record<string, unknown>[] = []) {
       totalCompletionTokens += metadata.usage.completionTokens
       totalReasoningTokens += metadata.usage.completionTokensDetails?.reasoningTokens || 0
       totalCachedTokens += metadata.usage.promptTokensDetails?.cachedTokens || 0
-      totalCost += metadata.usage.cost
+      totalCost += metadata.usage.cost ?? 0
       lastModel = metadata.model
       provider = metadata.provider
     }

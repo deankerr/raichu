@@ -15,6 +15,8 @@ import type * as chat_thread from "../chat/thread.js";
 import type * as chat_threads from "../chat/threads.js";
 import type * as constants from "../constants.js";
 import type * as healthCheck from "../healthCheck.js";
+import type * as keys from "../keys.js";
+import type * as lib_stack from "../lib/stack.js";
 import type * as playground from "../playground.js";
 import type * as todoLists from "../todoLists.js";
 import type * as todoTools from "../todoTools.js";
@@ -43,6 +45,8 @@ declare const fullApi: ApiFromModules<{
   "chat/threads": typeof chat_threads;
   constants: typeof constants;
   healthCheck: typeof healthCheck;
+  keys: typeof keys;
+  "lib/stack": typeof lib_stack;
   playground: typeof playground;
   todoLists: typeof todoLists;
   todoTools: typeof todoTools;

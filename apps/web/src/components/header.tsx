@@ -1,5 +1,7 @@
 import { UserButton } from "@stackframe/stack"
 import Link from "next/link"
+import { Suspense } from "react"
+import { OpenRouterMenu } from "./openrouter-menu"
 import { ThemeMenu } from "./theme-menu"
 
 export default function Header() {
@@ -19,6 +21,9 @@ export default function Header() {
       </nav>
 
       <div className="flex items-center gap-2">
+        <Suspense>
+          <OpenRouterMenu />
+        </Suspense>
         <ThemeMenu />
         <UserButton />
       </div>

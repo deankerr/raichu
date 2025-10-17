@@ -1,6 +1,10 @@
 "use client"
 
+import { api } from "@raichu/backend/convex/_generated/api"
+import { useUser } from "@stackframe/stack"
+import { useAction } from "convex/react"
 import { KeyIcon } from "lucide-react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,40 +17,48 @@ import {
 import { useOpenRouterPkce } from "@/hooks/use-openrouter-pkce"
 
 export function OpenRouterMenu() {
-  const { status, message, storedKey, keyPreview, connect, clearStoredKey } = useOpenRouterPkce()
+  const user = useUser()
+  const storeKey = useAction(api.keys.store)
+  const { status, key, connect, reset } = useOpenRouterPkce()
+
+  const isProcessing = status === "redirect" || status === "exchanging"
+  const isReady = user && !isProcessing
+
+  const keySignature = user?.clientReadOnlyMetadata?.openrouterApiKeySignature
+
+  // Store key when it becomes available
+  useEffect(() => {
+    if (key && user) {
+      const handleKeyReceived = async () => {
+        try {
+          await storeKey({ key })
+          console.log("OpenRouter key stored successfully")
+          reset()
+        } catch (error) {
+          console.error("Failed to store OpenRouter key:", error)
+        }
+      }
+
+      handleKeyReceived()
+    }
+  }, [key, user, storeKey, reset])
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          disabled={status === "redirect" || status === "exchanging"}
-          size="icon-sm"
-          variant="outline"
-        >
+        <Button disabled={!isReady} size="icon-sm" variant="outline">
           <KeyIcon />
           <span className="sr-only">OpenRouter actions</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuLabel>OpenRouter</DropdownMenuLabel>
-        <DropdownMenuItem disabled>
-          {keyPreview ? `Key saved (${keyPreview})` : "No key stored"}
-        </DropdownMenuItem>
-        {message && (
-          <DropdownMenuItem disabled>
-            <span className="text-muted-foreground text-xs">{message}</span>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem disabled>{keySignature ?? "No key stored"}</DropdownMenuItem>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={status === "redirect" || status === "exchanging"}
-          onClick={connect}
-        >
-          {storedKey ? "Re-connect" : "Connect"}
+        <DropdownMenuItem disabled={!isReady} onClick={connect}>
+          Connect
         </DropdownMenuItem>
-        {storedKey && (
-          <DropdownMenuItem onClick={clearStoredKey}>Clear stored key</DropdownMenuItem>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -114,11 +114,11 @@ function PageContent() {
           </ShellDockContent>
         ) : (
           <ShellDockContent>
-            <div className="flex flex-1 flex-col items-center justify-center gap-8 text-muted-foreground opacity-50">
+            <div className="flex flex-1 flex-col gap-8 overflow-y-auto text-muted-foreground opacity-50">
               <CircleSlash2Icon />
 
               <pre className="whitespace-pre-wrap font-mono text-xs">
-                USER: {JSON.stringify(userData, null, 2)}
+                USERDATA: {JSON.stringify(userData, null, 2)}
               </pre>
             </div>
           </ShellDockContent>

@@ -1,18 +1,18 @@
 "use client"
 
-import { api } from "@raichu/backend/convex/_generated/api"
-import { useQuery } from "convex/react"
+import { UserButton } from "@stackframe/stack"
 import { useAtom } from "jotai"
 import { CircleSlash2Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react"
+import { OpenRouterMenu } from "@/components/openrouter-menu"
 import { Chat } from "./_components/chat/chat"
 import {
   Shell,
   ShellDock,
   ShellDockContent,
-  ShellDockLeft,
   ShellDockTabBar,
   ShellDockTabButton,
   ShellDockTabIconButton,
+  ShellSidePanel,
 } from "./_components/shell"
 import { leftSidebarOpenAtom } from "./_components/store"
 import { ThreadExplorer } from "./_components/thread-explorer/thread-explorer"
@@ -26,33 +26,41 @@ function PageContent() {
 
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
 
-  const userData = useQuery(api.healthCheck.getUser)
-
   return (
     <Shell>
-      <ShellDockLeft className="bg-black/30" isOpen={isLeftSidebarOpen}>
-        <ShellDockTabBar>
-          {workspace.state.tabs.left.map((panel) => (
-            <ShellDockTabIconButton
-              isActive={workspace.getActiveTab("left")?.instanceId === panel.instanceId}
-              key={panel.instanceId}
-              label={panel.componentName}
-            >
-              {<panel.icon className="size-3.5" />}
-            </ShellDockTabIconButton>
-          ))}
-        </ShellDockTabBar>
+      <ShellSidePanel isOpen={isLeftSidebarOpen}>
+        <ShellDock className="bg-black/30">
+          <ShellDockTabBar>
+            {workspace.state.tabs.left.map((panel) => (
+              <ShellDockTabIconButton
+                isActive={workspace.getActiveTab("left")?.instanceId === panel.instanceId}
+                key={panel.instanceId}
+                label={panel.componentName}
+              >
+                {<panel.icon className="size-3.5" />}
+              </ShellDockTabIconButton>
+            ))}
+          </ShellDockTabBar>
 
-        <ShellDockContent>
-          <ThreadExplorer />
-        </ShellDockContent>
-      </ShellDockLeft>
+          <ShellDockContent>
+            <ThreadExplorer />
+          </ShellDockContent>
+        </ShellDock>
+
+        {/* * user panel */}
+        <div className="flex h-11 shrink-0 items-center justify-between gap-1.5 border-t bg-black/30 p-1.5">
+          <div className="grid size-8 place-content-center overflow-hidden rounded-full border-2">
+            <UserButton />
+          </div>
+          <OpenRouterMenu />
+        </div>
+      </ShellSidePanel>
 
       <ShellDock>
         <ShellDockTabBar>
           {/* * left sidebar toggle */}
           <ShellDockTabIconButton
-            isActive={isLeftSidebarOpen}
+            isActive={false}
             label={isLeftSidebarOpen ? "Hide sidebar" : "Show sidebar"}
             onClick={() => setLeftSidebarOpen(!isLeftSidebarOpen)}
           >
@@ -82,6 +90,8 @@ function PageContent() {
               }
             />
           ))}
+
+          <div className="flex-1" />
 
           <ShellDockTabIconButton
             isActive={false}
@@ -114,12 +124,8 @@ function PageContent() {
           </ShellDockContent>
         ) : (
           <ShellDockContent>
-            <div className="flex flex-1 flex-col gap-8 overflow-y-auto text-muted-foreground opacity-50">
+            <div className="grid flex-1 place-content-center gap-8 overflow-y-auto text-muted-foreground opacity-50">
               <CircleSlash2Icon />
-
-              <pre className="whitespace-pre-wrap font-mono text-xs">
-                USERDATA: {JSON.stringify(userData, null, 2)}
-              </pre>
             </div>
           </ShellDockContent>
         )}
@@ -131,7 +137,7 @@ function PageContent() {
 export default function Page() {
   return (
     <WorkspaceProvider>
-      <Viewport className="pt-12">
+      <Viewport>
         <PageContent />
       </Viewport>
     </WorkspaceProvider>

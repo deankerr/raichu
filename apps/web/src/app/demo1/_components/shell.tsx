@@ -13,40 +13,19 @@ export function Shell({ className, children, ...props }: React.ComponentProps<"m
   )
 }
 
-export function ShellDockLeft({
+export function ShellSidePanel({
   className,
   children,
-  isOpen = true,
+  isOpen,
   ...props
-}: React.ComponentProps<"div"> & { children: React.ReactNode; isOpen?: boolean }) {
+}: React.ComponentProps<"div"> & { isOpen?: boolean }) {
   return (
     <div
       className={cn(
-        "relative flex h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out",
-        isOpen ? "w-64 border-r" : "pointer-events-none w-0"
+        "relative flex h-full shrink-0 flex-col overflow-hidden transition-[width] duration-200 ease-out",
+        isOpen ? "w-64 first:border-r last:border-l" : "pointer-events-none w-0"
       )}
-      data-slot="shell-dock-left"
       data-state={isOpen ? "open" : "closed"}
-    >
-      <div
-        className={cn("grid h-full w-64 grid-rows-[2.75rem_1fr] overflow-x-hidden", className)}
-        {...props}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
-
-export function ShellDockRight({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div"> & { children: React.ReactNode }) {
-  return (
-    <div
-      className={cn("grid w-64 shrink-0 grid-rows-[2.75rem_1fr] overflow-x-hidden", className)}
-      data-slot="shell-dock-right"
       {...props}
     >
       {children}
@@ -54,11 +33,7 @@ export function ShellDockRight({
   )
 }
 
-export function ShellDock({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div"> & { children: React.ReactNode }) {
+export function ShellDock({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn("grid grow grid-rows-[2.75rem_1fr] overflow-x-hidden", className)}
@@ -73,7 +48,7 @@ export function ShellDock({
 export function ShellDockTabBar({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("flex items-stretch gap-1.5 overflow-hidden border-b px-1.5 py-1.5", className)}
+      className={cn("flex items-stretch gap-1 overflow-hidden border-b p-1", className)}
       data-slot="shell-dock-tab-bar"
       {...props}
     />
@@ -150,7 +125,7 @@ export function ShellDockTabIconButton({
   return (
     <button
       className={cn(
-        "group flex shrink-0 items-center rounded-sm border px-2.5",
+        "group flex shrink-0 items-center rounded-sm border px-2.5 [&_svg:not([class*='size-'])]:size-3.5",
         isActive
           ? "bg-accent text-accent-foreground dark:bg-accent/50"
           : "bg-background hover:bg-muted",

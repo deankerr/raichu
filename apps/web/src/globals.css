@@ -123,6 +123,7 @@
 @layer base {
   html {
     color-scheme: light dark;
+    @apply overscroll-none
   }
   button {
     @apply cursor-pointer;

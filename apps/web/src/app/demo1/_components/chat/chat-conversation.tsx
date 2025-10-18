@@ -20,7 +20,7 @@ export function ChatConversation({
   const { messages } = useThread(threadId)
 
   return (
-    <Conversation className="flex flex-col overflow-hidden">
+    <Conversation className="flex flex-col overflow-hidden" initial="instant" resize="instant">
       <ConversationContent className="mx-auto flex min-h-full max-w-3xl flex-col px-4.5">
         {isNewChat && <ConversationEmptyState className="flex-1" />}
 

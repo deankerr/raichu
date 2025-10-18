@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 function Frame({ children, className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("grid flex-1 overflow-hidden rounded-md border bg-background", className)}
+      className={cn("flex flex-1 overflow-hidden rounded-md border bg-background", className)}
       data-workspace-slot="frame"
       {...props}
     >
@@ -14,7 +14,11 @@ function Frame({ children, className, ...props }: React.ComponentProps<"div">) {
 
 function Group({ children, className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className={cn("flex overflow-hidden", className)} data-workspace-slot="group" {...props}>
+    <div
+      className={cn("flex flex-1 overflow-hidden", className)}
+      data-workspace-slot="group"
+      {...props}
+    >
       {children}
     </div>
   )

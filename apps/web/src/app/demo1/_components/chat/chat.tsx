@@ -1,16 +1,35 @@
 import { api } from "@raichu/backend/convex/_generated/api"
 import { useMutation } from "convex/react"
-import { CodeIcon, ShareIcon, TrashIcon } from "lucide-react"
+import { useAtom } from "jotai"
+import {
+  CodeIcon,
+  PanelRightCloseIcon,
+  PanelRightOpenIcon,
+  ShareIcon,
+  TrashIcon,
+} from "lucide-react"
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "../workspace"
+import { Workspace2 } from "../workspace2/workspace2"
 import { ChatConversation } from "./chat-conversation"
 import { ChatInput } from "./chat-input"
+import { chatParamsSidebarOpenAtom } from "./store"
 import { useThread } from "./use-chat"
 
 type ChatProps = {
   instanceId: string
   threadId: string // Can be "new" for new chat
+}
+
+function ParamsSidebarToggle() {
+  const [isOpen, setOpen] = useAtom(chatParamsSidebarOpenAtom)
+  return (
+    <Button onClick={() => setOpen(!isOpen)} size="icon-sm" variant="ghost">
+      {isOpen ? <PanelRightCloseIcon /> : <PanelRightOpenIcon />}
+      <span className="sr-only">{isOpen ? "Hide sidebar" : "Show sidebar"}</span>
+    </Button>
+  )
 }
 
 export function Chat({ instanceId, threadId }: ChatProps) {
@@ -42,23 +61,30 @@ export function Chat({ instanceId, threadId }: ChatProps) {
     })
   }
 
+  const [isParamsSidebarOpen] = useAtom(chatParamsSidebarOpenAtom)
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <Workspace2.Stack>
       <div className="grid h-9 shrink-0 grid-cols-[1fr_auto_1fr] items-center overflow-hidden px-1 text-muted-foreground text-xs shadow-md">
         <div />
         <div className="text-center">{tabTitle}</div>
         <div className="text-right">
+          <ParamsSidebarToggle />
+
           <Button onClick={() => console.log({ thread, messages })} size="icon-sm" variant="ghost">
             <CodeIcon />
           </Button>
 
-          {threadId !== "new" && thread && (
-            <Button asChild size="icon-sm" title="Share thread" variant="ghost">
-              <a href={`/share/${threadId}`} rel="noopener noreferrer" target="_blank">
-                <ShareIcon />
-              </a>
-            </Button>
-          )}
+          <Button
+            asChild
+            disabled={!thread || thread._id === "new"}
+            size="icon-sm"
+            title="Share thread"
+            variant="ghost"
+          >
+            <a href={`/share/${threadId}`} rel="noopener noreferrer" target="_blank">
+              <ShareIcon />
+            </a>
+          </Button>
 
           <Button
             onClick={() => {
@@ -75,9 +101,16 @@ export function Chat({ instanceId, threadId }: ChatProps) {
           </Button>
         </div>
       </div>
-      <ChatConversation threadId={threadId}>
-        <ChatInput onThreadCreated={onThreadCreated} threadId={threadId} />
-      </ChatConversation>
-    </div>
+
+      <Workspace2.Group>
+        <ChatConversation threadId={threadId}>
+          <ChatInput onThreadCreated={onThreadCreated} threadId={threadId} />
+        </ChatConversation>
+
+        <Workspace2.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
+          <Workspace2.Stack>(prompt/param options panel)</Workspace2.Stack>
+        </Workspace2.CollapsiblePanel>
+      </Workspace2.Group>
+    </Workspace2.Stack>
   )
 }

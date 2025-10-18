@@ -17,7 +17,7 @@ export function TabButton({
   return (
     <div
       className={cn(
-        "group flex min-w-0 max-w-60 flex-1 items-center rounded-sm border py-1 pr-1 pl-2.5 text-sm",
+        "group flex min-w-0 max-w-60 flex-1 rounded-sm border text-[13px]",
         isActive
           ? "bg-accent text-accent-foreground dark:bg-accent/50"
           : "bg-background hover:bg-muted",
@@ -26,13 +26,20 @@ export function TabButton({
       data-slot="shell-dock-tab-button"
       {...props}
     >
-      <button className="min-w-0 flex-1 truncate text-left" onClick={onClick} type="button">
+      <button
+        className={cn(
+          "min-w-0 flex-1 truncate py-1 pr-2 pl-2 text-left group-hover:pr-0",
+          isActive && "pr-0"
+        )}
+        onClick={onClick}
+        type="button"
+      >
         {label}
       </button>
       <button
         aria-label="Close tab"
         className={cn(
-          "hidden flex-shrink-0 rounded p-1 transition-opacity hover:bg-muted-foreground/20 group-hover:block",
+          "mr-1 hidden flex-shrink-0 self-center rounded p-1 transition-opacity hover:bg-muted-foreground/20 group-hover:block",
           isActive && "block"
         )}
         onClick={(e) => {

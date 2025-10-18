@@ -4,13 +4,14 @@ import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useThreads } from "../chat/use-chat"
 import { useWorkspace } from "../workspace"
+import { Workspace2 } from "../workspace2/workspace2"
 
 export function ThreadExplorer({ children, className, ...props }: React.ComponentProps<"div">) {
   const threads = useThreads()
   const workspace = useWorkspace()
 
   return (
-    <div className={cn("flex flex-col gap-2 overflow-x-hidden px-2 py-2", className)} {...props}>
+    <Workspace2.Stack className={cn("gap-2 px-2 py-2", className)} {...props}>
       {threads.isLoading && (
         <div className="grid flex-1 place-content-center text-muted-foreground">
           <Spinner />
@@ -54,7 +55,7 @@ export function ThreadExplorer({ children, className, ...props }: React.Componen
           </ThreadButton>
         )
       })}
-    </div>
+    </Workspace2.Stack>
   )
 }
 

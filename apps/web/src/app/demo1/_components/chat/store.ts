@@ -16,3 +16,5 @@ export const chatInputAtomFamily = atomFamily(
     }),
   (a, b) => a.threadId === b.threadId
 )
+
+export const chatParamsSidebarOpenAtom = atom(false)

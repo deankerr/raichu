@@ -1,71 +1,7 @@
 import { XIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function Shell({ className, children, ...props }: React.ComponentProps<"main">) {
-  return (
-    <main
-      className={cn("flex overflow-hidden rounded-md border bg-background", className)}
-      data-slot="shell"
-      {...props}
-    >
-      {children}
-    </main>
-  )
-}
-
-export function ShellSidePanel({
-  className,
-  children,
-  isOpen,
-  ...props
-}: React.ComponentProps<"div"> & { isOpen?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "relative flex h-full shrink-0 flex-col overflow-hidden transition-[width] duration-200 ease-out",
-        isOpen ? "w-64 first:border-r last:border-l" : "pointer-events-none w-0"
-      )}
-      data-state={isOpen ? "open" : "closed"}
-      {...props}
-    >
-      {children}
-    </div>
-  )
-}
-
-export function ShellDock({ className, children, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("grid grow grid-rows-[2.75rem_1fr] overflow-x-hidden", className)}
-      data-slot="shell-dock"
-      {...props}
-    >
-      {children}
-    </div>
-  )
-}
-
-export function ShellDockTabBar({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("flex items-stretch gap-1 overflow-hidden border-b p-1", className)}
-      data-slot="shell-dock-tab-bar"
-      {...props}
-    />
-  )
-}
-
-export function ShellDockContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("grid overflow-hidden", className)}
-      data-slot="shell-dock-content"
-      {...props}
-    />
-  )
-}
-
-export function ShellDockTabButton({
+export function TabButton({
   label,
   isActive,
   onClose,
@@ -111,7 +47,7 @@ export function ShellDockTabButton({
   )
 }
 
-export function ShellDockTabIconButton({
+export function TabIconButton({
   label,
   isActive = false,
   children,

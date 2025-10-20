@@ -12,7 +12,11 @@ export const list = query({
     streamArgs: vStreamArgs,
   },
   handler: async (ctx, args) => {
-    const messageDocs = await listMessages(ctx, components.agent, args)
+    const messageDocs = await listMessages(ctx, components.agent, {
+      threadId: args.threadId,
+      paginationOpts: args.paginationOpts,
+    })
+
     const uiMessages = {
       ...messageDocs,
       // convert to UI messages
@@ -27,7 +31,10 @@ export const list = query({
       ),
     }
 
-    const streams = await syncStreams(ctx, components.agent, args)
+    const streams = await syncStreams(ctx, components.agent, {
+      threadId: args.threadId,
+      streamArgs: args.streamArgs,
+    })
 
     return {
       ...uiMessages,

@@ -1,5 +1,6 @@
 "use client"
 
+import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { UserButton } from "@stackframe/stack"
 import { useAtom } from "jotai"
 import { CircleSlash2Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react"
@@ -117,9 +118,9 @@ function Main() {
          */}
         {mainActiveTab ? (
           <Chat
+            chatId={(mainActiveTab.props?.chatId ?? "new") as Id<"chats">}
             instanceId={mainActiveTab.instanceId}
             key={mainActiveTab.instanceId}
-            threadId={(mainActiveTab.props?.threadId as string) ?? "new"}
           />
         ) : (
           <div className="grid flex-1 place-content-center text-muted-foreground opacity-50">

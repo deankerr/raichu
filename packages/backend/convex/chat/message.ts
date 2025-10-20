@@ -2,47 +2,65 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { ConvexError, v } from "convex/values"
 import { internal } from "../_generated/api"
 import { internalAction, mutation } from "../_generated/server"
-import { basicAgent } from "../agent"
+import { createAgent } from "../agent"
 import { stackServerApp } from "../lib/stack"
+import { getCurrentUser } from "../users"
 
 // > save user message, schedule streaming response
 export const send = mutation({
   args: {
+    chatId: v.id("chats"),
     prompt: v.string(),
-    threadId: v.string(),
-    modelId: v.string(),
   },
   handler: async (ctx, args) => {
-    const userData = await ctx.auth.getUserIdentity()
-    if (!userData) {
+    const user = await getCurrentUser(ctx)
+    if (!user) {
       throw new Error("User not authenticated")
     }
-    // TODO: check ownership of thread
 
-    const { messageId } = await basicAgent.saveMessage(ctx, {
-      threadId: args.threadId,
+    const chat = await ctx.db.get(args.chatId)
+    if (!chat) {
+      throw new Error("Chat not found")
+    }
+
+    if (chat.userId !== user._id) {
+      throw new Error("Unauthorized")
+    }
+
+    const agent = createAgent(chat.config)
+
+    const { messageId } = await agent.saveMessage(ctx, {
+      threadId: chat.threadId,
       prompt: args.prompt,
       skipEmbeddings: true,
     })
 
     await ctx.scheduler.runAfter(0, internal.chat.message.streamAsync, {
-      threadId: args.threadId,
+      userSubject: user.subject,
+      threadId: chat.threadId,
       promptMessageId: messageId,
-      modelId: args.modelId,
-      userId: userData.subject,
+      userId: user._id,
+      config: chat.config,
     })
   },
 })
 
 export const streamAsync = internalAction({
   args: {
-    promptMessageId: v.string(),
-    threadId: v.string(),
-    modelId: v.string(),
+    userSubject: v.string(),
     userId: v.string(),
+    threadId: v.string(),
+    promptMessageId: v.string(),
+
+    config: v.object({
+      modelId: v.string(),
+      temperature: v.optional(v.number()),
+      maxOutputTokens: v.optional(v.number()),
+      name: v.string(),
+    }),
   },
-  handler: async (ctx, { promptMessageId, threadId, modelId, userId }) => {
-    const stackUser = await stackServerApp.getUser(userId)
+  handler: async (ctx, { promptMessageId, threadId, userSubject, config }) => {
+    const stackUser = await stackServerApp.getUser(userSubject)
     if (!stackUser) {
       throw new ConvexError({
         message: "User not found",
@@ -69,13 +87,14 @@ export const streamAsync = internalAction({
       },
     })
 
-    const result = await basicAgent.streamText(
+    const agent = createAgent(config)
+
+    const result = await agent.streamText(
       ctx,
       { threadId },
       {
         promptMessageId,
-        model: openrouter.chat(modelId),
-        temperature: 0.6,
+        model: openrouter.chat(config.modelId),
       },
       // more custom delta options (`true` uses defaults)
       { saveStreamDeltas: true }
@@ -87,14 +106,26 @@ export const streamAsync = internalAction({
 })
 
 export const delete_ = mutation({
-  args: { messageId: v.string() },
-  handler: async (ctx, { messageId }) => {
-    const userData = await ctx.auth.getUserIdentity()
-    if (!userData) {
+  args: {
+    chatId: v.id("chats"),
+    messageId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) {
       throw new Error("User not authenticated")
     }
-    // TODO: auth check
 
-    await basicAgent.deleteMessage(ctx, { messageId })
+    const chat = await ctx.db.get(args.chatId)
+    if (!chat) {
+      throw new Error("Chat not found")
+    }
+
+    if (chat.userId !== user._id) {
+      throw new Error("Unauthorized")
+    }
+
+    const agent = createAgent(chat.config)
+    await agent.deleteMessage(ctx, { messageId: args.messageId })
   },
 })

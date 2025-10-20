@@ -1,26 +1,15 @@
 import { api } from "@raichu/backend/convex/_generated/api"
+import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
 import { useAtom } from "jotai"
-import {
-  CodeIcon,
-  PanelRightCloseIcon,
-  PanelRightOpenIcon,
-  ShareIcon,
-  TrashIcon,
-} from "lucide-react"
-import { useEffect } from "react"
+import { PanelRightCloseIcon, PanelRightOpenIcon, ShareIcon, TrashIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "../workspace"
 import { Workspace2 } from "../workspace2/workspace2"
 import { ChatConversation } from "./chat-conversation"
 import { ChatInput } from "./chat-input"
 import { chatParamsSidebarOpenAtom } from "./store"
-import { useThread } from "./use-chat"
-
-type ChatProps = {
-  instanceId: string
-  threadId: string // Can be "new" for new chat
-}
+import { useChat } from "./use-chat"
 
 function ParamsSidebarToggle() {
   const [isOpen, setOpen] = useAtom(chatParamsSidebarOpenAtom)
@@ -32,26 +21,14 @@ function ParamsSidebarToggle() {
   )
 }
 
-export function Chat({ instanceId, threadId }: ChatProps) {
-  const deleteThread = useMutation(api.chat.thread.delete_)
-  const { thread, messages } = useThread(threadId)
+export function Chat({ instanceId, chatId }: { instanceId: string; chatId: string }) {
+  const deleteChat = useMutation(api.chat.delete_)
+
+  const chat = useChat(chatId)
 
   const workspace = useWorkspace()
-
   // TODO: temporary workspace/threads glue
-  // biome-ignore lint/style/noNonNullAssertion: ya
   const tab = workspace.getTab(instanceId)!
-  const tabTitle = tab.title
-
-  useEffect(() => {
-    if (thread?.title && tabTitle !== thread.title) {
-      workspace.dispatch({
-        type: "UPDATE_TAB_TITLE",
-        instanceId,
-        title: thread.title,
-      })
-    }
-  }, [tabTitle, thread, instanceId, workspace])
 
   const onThreadCreated = (newThreadId: string) => {
     workspace.dispatch({
@@ -66,29 +43,26 @@ export function Chat({ instanceId, threadId }: ChatProps) {
     <Workspace2.Stack>
       <div className="grid h-9 shrink-0 grid-cols-[1fr_auto_1fr] items-center overflow-hidden px-1 text-muted-foreground text-xs shadow-md">
         <div />
-        <div className="text-center">{tabTitle}</div>
+        <div className="text-center">{chat?.title ?? "Chat"}</div>
         <div className="text-right">
           <ParamsSidebarToggle />
 
-          <Button onClick={() => console.log({ thread, messages })} size="icon-sm" variant="ghost">
+          {/* <Button onClick={() => console.log({ thread, messages })} size="icon-sm" variant="ghost">
             <CodeIcon />
-          </Button>
+          </Button> */}
 
-          <Button
-            asChild
-            disabled={!thread || thread._id === "new"}
-            size="icon-sm"
-            title="Share thread"
-            variant="ghost"
-          >
-            <a href={`/share/${threadId}`} rel="noopener noreferrer" target="_blank">
+          <Button asChild disabled={!chat?._id} size="icon-sm" title="Share thread" variant="ghost">
+            <a href={`/share/${chatId}`} rel="noopener noreferrer" target="_blank">
               <ShareIcon />
             </a>
           </Button>
 
           <Button
             onClick={() => {
-              deleteThread({ threadId })
+              if (!chat) {
+                return
+              }
+              deleteChat({ chatId: chat._id })
               workspace.dispatch({
                 type: "REMOVE_TAB",
                 instanceId: tab.instanceId,
@@ -102,15 +76,23 @@ export function Chat({ instanceId, threadId }: ChatProps) {
         </div>
       </div>
 
-      <Workspace2.Group>
-        <ChatConversation threadId={threadId}>
-          <ChatInput onThreadCreated={onThreadCreated} threadId={threadId} />
-        </ChatConversation>
+      {chat && (
+        <Workspace2.Group>
+          <ChatConversation chatId={chat._id} threadId={chat.threadId}>
+            <ChatInput chatId={chat._id} onChatCreated={onThreadCreated} />
+          </ChatConversation>
 
-        <Workspace2.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
-          <Workspace2.Stack>(prompt/param options panel)</Workspace2.Stack>
-        </Workspace2.CollapsiblePanel>
-      </Workspace2.Group>
+          <Workspace2.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
+            <Workspace2.Stack>(prompt/param options panel)</Workspace2.Stack>
+          </Workspace2.CollapsiblePanel>
+        </Workspace2.Group>
+      )}
+
+      {chatId === "new" && (
+        <div className="flex flex-1 items-center *:w-full">
+          <ChatInput chatId={chatId as Id<"chats">} onChatCreated={onThreadCreated} />
+        </div>
+      )}
     </Workspace2.Stack>
   )
 }

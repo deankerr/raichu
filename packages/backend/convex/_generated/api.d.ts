@@ -12,7 +12,8 @@ import type * as agent from "../agent.js";
 import type * as chat_message from "../chat/message.js";
 import type * as chat_messages from "../chat/messages.js";
 import type * as chat_thread from "../chat/thread.js";
-import type * as chat_threads from "../chat/threads.js";
+import type * as chat from "../chat.js";
+import type * as chats from "../chats.js";
 import type * as constants from "../constants.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as keys from "../keys.js";
@@ -21,6 +22,7 @@ import type * as playground from "../playground.js";
 import type * as todoLists from "../todoLists.js";
 import type * as todoTools from "../todoTools.js";
 import type * as todos from "../todos.js";
+import type * as users from "../users.js";
 import type * as utils from "../utils.js";
 
 import type {
@@ -42,7 +44,8 @@ declare const fullApi: ApiFromModules<{
   "chat/message": typeof chat_message;
   "chat/messages": typeof chat_messages;
   "chat/thread": typeof chat_thread;
-  "chat/threads": typeof chat_threads;
+  chat: typeof chat;
+  chats: typeof chats;
   constants: typeof constants;
   healthCheck: typeof healthCheck;
   keys: typeof keys;
@@ -51,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   todoLists: typeof todoLists;
   todoTools: typeof todoTools;
   todos: typeof todos;
+  users: typeof users;
   utils: typeof utils;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

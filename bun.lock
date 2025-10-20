@@ -81,6 +81,7 @@
         "@stackframe/stack": "^2.8.43",
         "convex": "^1.27.5",
         "convex-helpers": "^0.1.104",
+        "nanoid": "^5.1.6",
         "zod": "^4.1.12",
       },
       "devDependencies": {

@@ -43,7 +43,8 @@
         "noNamespaceImport": "off"
       },
       "style": {
-        "noNestedTernary": "off"
+        "noNestedTernary": "off",
+        "noNonNullAssertion": "off"
       },
       "suspicious": {
         "noUnknownAtRules": "off",

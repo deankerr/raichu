@@ -22,4 +22,22 @@ export default defineSchema({
     .index("by_user_and_list", ["userId", "listId"])
     .index("by_list", ["listId"])
     .index("by_user_and_completed", ["userId", "completed"]),
+
+  chats: defineTable({
+    userId: v.id("users"),
+    threadId: v.string(),
+
+    title: v.string(),
+
+    config: v.object({
+      modelId: v.string(),
+      temperature: v.optional(v.number()),
+      maxOutputTokens: v.optional(v.number()),
+      name: v.string(),
+    }),
+  }).index("by_userId", ["userId"]),
+
+  users: defineTable({
+    tokenIdentifier: v.string(),
+  }).index("by_tokenIdentifier", ["tokenIdentifier"]),
 })

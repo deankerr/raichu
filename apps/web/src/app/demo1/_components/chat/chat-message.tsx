@@ -1,5 +1,6 @@
 import type { UIMessage } from "@convex-dev/agent/react"
 import { api } from "@raichu/backend/convex/_generated/api"
+import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import type { ToolUIPart } from "ai"
 import { useMutation } from "convex/react"
 import {
@@ -65,12 +66,14 @@ function MessageMetadata({
 
 export function ChatMessage({
   message,
+  chatId,
   isLatestMessage,
   showActions = true,
   className,
   ...props
 }: {
   message: UIMessage
+  chatId: Id<"chats">
   isLatestMessage: boolean
   showActions?: boolean
 } & React.ComponentProps<"div">) {
@@ -184,7 +187,7 @@ export function ChatMessage({
               <CodeIcon className="size-3" />
             </Action>
 
-            <Action label="Delete" onClick={() => deleteMessage({ messageId: message.id })}>
+            <Action label="Delete" onClick={() => deleteMessage({ chatId, messageId: message.id })}>
               <TrashIcon className="size-3" />
             </Action>
           </Actions>

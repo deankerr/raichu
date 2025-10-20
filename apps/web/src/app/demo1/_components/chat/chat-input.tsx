@@ -1,5 +1,5 @@
-import { optimisticallySendMessage } from "@convex-dev/agent/react"
 import { api } from "@raichu/backend/convex/_generated/api"
+import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
 import { useAtom } from "jotai"
 import {
@@ -26,21 +26,19 @@ import { chatModelIds } from "./data"
 import { useChatInputAtoms } from "./use-chat"
 
 type ChatInputProps = {
-  threadId: string
-  onThreadCreated?: (threadId: string) => void
+  chatId: Id<"chats">
+  onChatCreated?: (chatId: string) => void
 }
 
-export function ChatInput({ threadId, onThreadCreated }: ChatInputProps) {
-  const [chatAtom] = useChatInputAtoms(threadId)
+export function ChatInput({ chatId, onChatCreated }: ChatInputProps) {
+  const [chatAtom] = useChatInputAtoms(chatId)
   const [input, setInput] = useAtom(chatAtom.input)
   const [modelId = chatModelIds[0].value, setModelId] = useAtom(chatAtom.modelId)
 
-  const isNewChat = threadId === "new"
+  const isNewChat = chatId === "new"
 
-  const createThread = useMutation(api.chat.thread.create)
-  const sendMessage = useMutation(api.chat.message.send).withOptimisticUpdate(
-    optimisticallySendMessage(api.chat.messages.list)
-  )
+  const createChat = useMutation(api.chat.create)
+  const sendMessage = useMutation(api.chat.message.send)
 
   const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,22 +50,23 @@ export function ChatInput({ threadId, onThreadCreated }: ChatInputProps) {
     setInput("")
 
     try {
-      const targetThreadId = isNewChat
+      const targetChatId = isNewChat
         ? (
-            await createThread({
+            await createChat({
               prompt: messageText,
+              modelId,
+              name: "NameBot",
             })
-          ).threadId
-        : threadId
+          ).chatId
+        : chatId
 
       await sendMessage({
-        threadId: targetThreadId,
+        chatId: targetChatId,
         prompt: messageText,
-        modelId,
       })
 
       if (isNewChat) {
-        onThreadCreated?.(targetThreadId)
+        onChatCreated?.(targetChatId)
       }
     } catch (error) {
       console.error(error)

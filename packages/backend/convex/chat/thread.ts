@@ -1,45 +1,22 @@
-import { v } from "convex/values"
 import { components } from "../_generated/api"
-import { mutation, query } from "../_generated/server"
-import { basicAgent } from "../agent"
-import { MAX_TITLE_LENGTH } from "../constants"
+import type { MutationCtx, QueryCtx } from "../_generated/server"
 
-export const create = mutation({
-  args: {
-    prompt: v.string(),
-  },
-  handler: async (ctx, { prompt }) => {
-    const userData = await ctx.auth.getUserIdentity()
-    if (!userData) {
-      throw new Error("User not authenticated")
-    }
+/**
+ * Helper function to get a thread by ID
+ */
+export async function getThread(ctx: QueryCtx, args: { threadId: string }) {
+  const thread = await ctx.runQuery(components.agent.threads.getThread, {
+    threadId: args.threadId,
+  })
+  return thread
+}
 
-    return await basicAgent.createThread(ctx, {
-      userId: userData.tokenIdentifier,
-      title: prompt.slice(0, MAX_TITLE_LENGTH) + (prompt.length > MAX_TITLE_LENGTH ? "..." : ""),
-    })
-  },
-})
-
-export const delete_ = mutation({
-  args: { threadId: v.string() },
-  handler: async (ctx, { threadId }) => {
-    const userData = await ctx.auth.getUserIdentity()
-    if (!userData) {
-      throw new Error("User not authenticated")
-    }
-
-    // TODO: auth check
-    await basicAgent.deleteThreadAsync(ctx, { threadId })
-  },
-})
-
-export const get = query({
-  args: { threadId: v.string() },
-  handler: async (ctx, { threadId }) => {
-    const thread = await ctx.runQuery(components.agent.threads.getThread, {
-      threadId,
-    })
-    return thread
-  },
-})
+/**
+ * Helper function to delete a thread and all its messages
+ */
+export async function deleteThread(ctx: MutationCtx, args: { threadId: string }) {
+  // Schedule async deletion of all thread data
+  await ctx.scheduler.runAfter(0, components.agent.threads.deleteAllForThreadIdAsync, {
+    threadId: args.threadId,
+  })
+}

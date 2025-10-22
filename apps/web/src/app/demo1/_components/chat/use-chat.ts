@@ -4,8 +4,8 @@ import { useQuery } from "convex/react"
 import { useAtom } from "jotai"
 import { chatInputAtomFamily } from "./store"
 
-export function useThread(threadId: string) {
-  const messages = useUIMessages(api.v0.messages.list, threadId === "new" ? "skip" : { threadId }, {
+export function useThread(threadId?: string) {
+  const messages = useUIMessages(api.v0.messages.list, threadId ? { threadId } : "skip", {
     initialNumItems: 25,
     stream: true,
   })
@@ -22,6 +22,6 @@ export function useChat(chatId: string) {
   return chats?.find((c) => c._id === chatId)
 }
 
-export function useChatInputAtoms(instanceId: string) {
-  return useAtom(chatInputAtomFamily({ instanceId }))
+export function useChatInputAtoms(id: string) {
+  return useAtom(chatInputAtomFamily({ id }))
 }

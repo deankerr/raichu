@@ -3,10 +3,12 @@ import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
 import { useAtom, useSetAtom } from "jotai"
 import { PanelRightCloseIcon, PanelRightOpenIcon, ShareIcon, TrashIcon } from "lucide-react"
+import { toast } from "sonner"
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
 import { Button } from "@/components/ui/button"
-import { useWorkspace } from "../workspace"
-import { Workspace2 } from "../workspace2/workspace2"
+import { getErrorMessage } from "@/lib/utils"
+import { useWorkspaceContext } from "../provider"
+import { Workspace } from "../workspace"
 import { ChatConversation } from "./chat-conversation"
 import { ChatInput } from "./chat-input"
 import { ChatTitleBar } from "./chat-titlebar"
@@ -26,11 +28,12 @@ function ParamsSidebarToggle() {
 export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"chats_v0"> }) {
   const [isParamsSidebarOpen] = useAtom(chatParamsSidebarOpenAtom)
 
+  const { controls } = useWorkspaceContext()
+
   const deleteChat = useMutation(api.v0.chats.del)
   const chat = useChat(chatId)
-  const workspace = useWorkspace()
 
-  const [chatInputAtoms] = useChatInputAtoms(instanceId)
+  const [chatInputAtoms] = useChatInputAtoms(chatId)
   const setInput = useSetAtom(chatInputAtoms.input)
 
   const sendMessage = useMutation(api.v0.messages.send)
@@ -52,11 +55,12 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
       setInput("")
     } catch (error) {
       console.error(error)
+      toast.error(getErrorMessage(error))
     }
   }
 
   return (
-    <Workspace2.Stack>
+    <Workspace.Stack>
       <ChatTitleBar>
         <div />
         <div className="text-center">{chat?.title ?? "Chat"}</div>
@@ -79,10 +83,7 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
                 return
               }
               deleteChat({ id: chat._id })
-              workspace.dispatch({
-                type: "REMOVE_TAB",
-                instanceId,
-              })
+              controls.removeTab(instanceId)
             }}
             size="icon-sm"
             variant="ghost"
@@ -93,16 +94,19 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
       </ChatTitleBar>
 
       {chat && (
-        <Workspace2.Group>
-          <ChatConversation chatId={chat._id} threadId={chat.threadId}>
-            <ChatInput instanceId={instanceId} onSubmit={handleSubmit} />
+        <Workspace.Group>
+          <ChatConversation chatId={chat._id}>
+            <ChatInput instanceId={chatId} onSubmit={handleSubmit} />
           </ChatConversation>
 
-          <Workspace2.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
-            <Workspace2.Stack>(prompt/param options panel)</Workspace2.Stack>
-          </Workspace2.CollapsiblePanel>
-        </Workspace2.Group>
+          <Workspace.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
+            <Workspace.Stack>
+              (prompt/param options panel)
+              {/* TODO: temperature, max tokens, system prompt, agent name, etc. */}
+            </Workspace.Stack>
+          </Workspace.CollapsiblePanel>
+        </Workspace.Group>
       )}
-    </Workspace2.Stack>
+    </Workspace.Stack>
   )
 }

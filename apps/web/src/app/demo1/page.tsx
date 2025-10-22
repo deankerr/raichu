@@ -1,7 +1,8 @@
 "use client"
 
+import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { UserButton } from "@stackframe/stack"
-import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import { useAtom } from "jotai"
 import {
   CircleSlash2Icon,
   MessagesSquareIcon,
@@ -10,19 +11,14 @@ import {
   PlusIcon,
 } from "lucide-react"
 import { OpenRouterMenu } from "@/components/openrouter-menu"
+import { Toggle } from "@/components/ui/toggle"
 import { Chat } from "./_components/chat/chat"
 import { NewChat } from "./_components/chat/new-chat"
-import { ThreadExplorer } from "./_components/thread-explorer/thread-explorer"
-import { useWorkspace, WorkspaceProvider } from "./_components/workspace"
-import {
-  activeTabAtomAtom,
-  readActiveTabAtom,
-  type WorkspaceTabAtom,
-  workspaceTabsAtom,
-} from "./_components/workspace2/provider"
-import { leftSidebarOpenAtom } from "./_components/workspace2/store"
-import { TabButton, TabIconButton } from "./_components/workspace2/tabs"
-import { Workspace2 } from "./_components/workspace2/workspace2"
+import { ChatsMenu } from "./_components/chats-menu/chats-menu"
+import { useWorkspaceContext, WorkspaceProvider } from "./_components/provider"
+import { leftSidebarOpenAtom } from "./_components/store"
+import { TabButton, TabIconButton } from "./_components/tabs"
+import { Workspace } from "./_components/workspace"
 
 function UserPanel() {
   return (
@@ -38,74 +34,65 @@ function UserPanel() {
 function LeftSidebar() {
   const [isLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
   return (
-    <Workspace2.CollapsiblePanel isCollapsed={!isLeftSidebarOpen}>
-      <Workspace2.Stack className="bg-black/30">
-        <Workspace2.Row className="h-11 border-b">
+    <Workspace.CollapsiblePanel isCollapsed={!isLeftSidebarOpen}>
+      <Workspace.Stack className="bg-black/30">
+        <Workspace.Row className="h-11 border-b">
           <TabIconButton isActive={true} label={"Chats Explorer"}>
             <MessagesSquareIcon />
           </TabIconButton>
-        </Workspace2.Row>
+        </Workspace.Row>
 
-        <ThreadExplorer className="flex-1" />
+        <ChatsMenu className="flex-1" />
 
         <UserPanel />
-      </Workspace2.Stack>
-    </Workspace2.CollapsiblePanel>
+      </Workspace.Stack>
+    </Workspace.CollapsiblePanel>
   )
 }
 
 function LeftSidebarToggle() {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
+
   return (
-    <TabIconButton
-      isActive={false}
-      label={isLeftSidebarOpen ? "Hide sidebar" : "Show sidebar"}
-      onClick={() => setLeftSidebarOpen(!isLeftSidebarOpen)}
+    <Toggle
+      aria-label="Toggle sidebar"
+      className="group data-[state=on]:bg-transparent"
+      onPressedChange={setLeftSidebarOpen}
+      pressed={isLeftSidebarOpen}
     >
-      {isLeftSidebarOpen ? <PanelLeftCloseIcon /> : <PanelLeftOpenIcon />}
-    </TabIconButton>
+      <PanelLeftCloseIcon className="group-data-[state=off]:hidden" />
+      <PanelLeftOpenIcon className="group-data-[state=on]:hidden" />
+    </Toggle>
   )
 }
 
-function Tab({ tabAtom }: { tabAtom: WorkspaceTabAtom }) {
-  const dispatch = useSetAtom(workspaceTabsAtom)
-  const tab = useAtomValue(tabAtom)
+function Tab({ tabId }: { tabId: string }) {
+  const { tabs, activeTabId, controls } = useWorkspaceContext()
+  const tab = tabs.find((t) => t.tabId === tabId)
+
+  if (!tab) return null
 
   return (
     <TabButton
-      isActive={false}
-      label={tab.title ?? "UNTITLED"}
-      // onClick={() =>
-      //   workspace.dispatch({
-      //     type: "FOCUS_TAB",
-      //     instanceId: tab.instanceId,
-      //   })
-      // }
-      onClose={() =>
-        dispatch({
-          type: "remove",
-          atom: tabAtom,
-        })
-      }
+      isActive={activeTabId === tabId}
+      label={tab.title}
+      onClick={() => controls.setActiveTab(tabId)}
+      onClose={() => controls.removeTab(tabId)}
     />
   )
 }
 
 function Main() {
-  const workspace = useWorkspace()
-  const workspaceTabs = useAtomValue(workspaceTabsAtom)
-
-  const activeTabAtom = useAtomValue(activeTabAtomAtom)
-  const activeWorkspaceTab = useAtomValue(readActiveTabAtom)
+  const { tabs, activeTab, controls } = useWorkspaceContext()
 
   return (
-    <Workspace2.Panel>
-      <Workspace2.Stack>
-        <Workspace2.Row className="h-11 border-b">
+    <Workspace.Panel>
+      <Workspace.Stack>
+        <Workspace.Row className="h-11 border-b">
           <LeftSidebarToggle />
 
-          {workspaceTabs.map((tabAtom) => (
-            <Tab key={tabAtom.toString()} tabAtom={tabAtom} />
+          {tabs.map((tab) => (
+            <Tab key={tab.tabId} tabId={tab.tabId} />
           ))}
 
           <div className="flex-1" />
@@ -113,43 +100,41 @@ function Main() {
           <TabIconButton
             isActive={false}
             label="New Chat"
-            onClick={() =>
-              workspace.dispatch({
-                type: "ADD_TAB",
-                componentId: "chat",
-                area: "main",
-                tab: {},
+            onClick={() => {
+              controls.addTab({
+                componentType: "new-chat",
+                componentId: "",
+                title: "New Chat",
               })
-            }
+            }}
           >
             <PlusIcon />
           </TabIconButton>
-        </Workspace2.Row>
+        </Workspace.Row>
 
         {/*
          * Render active tab content
-         * For now all tabs are chats, but this is where we'd branch
-         * to different content types in the future
+         * Branch based on componentType
          */}
-        {activeWorkspaceTab?.chatId && (
+        {activeTab?.componentType === "chat" && (
           <Chat
-            chatId={activeWorkspaceTab.chatId}
-            instanceId={activeWorkspaceTab.instanceId}
-            key={activeWorkspaceTab.instanceId}
+            chatId={activeTab.componentId as Id<"chats_v0">}
+            instanceId={activeTab.tabId}
+            key={activeTab.tabId}
           />
         )}
 
-        {activeWorkspaceTab && !activeWorkspaceTab.chatId && (
-          <NewChat instanceId={activeWorkspaceTab.instanceId} />
+        {activeTab?.componentType === "new-chat" && (
+          <NewChat instanceId={activeTab.tabId} key={activeTab.tabId} />
         )}
 
-        {!activeWorkspaceTab && (
+        {!activeTab && (
           <div className="grid flex-1 place-content-center text-muted-foreground opacity-50">
             <CircleSlash2Icon />
           </div>
         )}
-      </Workspace2.Stack>
-    </Workspace2.Panel>
+      </Workspace.Stack>
+    </Workspace.Panel>
   )
 }
 
@@ -157,12 +142,12 @@ export default function Page() {
   return (
     <WorkspaceProvider>
       <div className="grid h-svh overflow-hidden bg-black/50 p-1.5">
-        <Workspace2.Frame>
-          <Workspace2.Group>
+        <Workspace.Frame>
+          <Workspace.Group>
             <LeftSidebar />
             <Main />
-          </Workspace2.Group>
-        </Workspace2.Frame>
+          </Workspace.Group>
+        </Workspace.Frame>
       </div>
     </WorkspaceProvider>
   )

@@ -2,27 +2,29 @@ import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import {
   Conversation,
   ConversationContent,
+  ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation"
 import { Loader } from "@/components/ai-elements/loader"
 import { ChatMessage } from "./chat-message"
-import { useThread } from "./use-chat"
+import { useChat, useThread } from "./use-chat"
 
 export function ChatConversation({
   chatId,
-  threadId,
   children,
 }: {
   chatId: Id<"chats_v0">
-  threadId: string
   children?: React.ReactNode
 }) {
-  const { messages } = useThread(threadId)
+  const chat = useChat(chatId)
+  const { messages } = useThread(chat?.threadId)
 
   return (
     <Conversation className="flex flex-col overflow-hidden" initial="instant" resize="instant">
       <ConversationContent className="mx-auto flex min-h-full max-w-3xl flex-col px-4.5">
-        {/* {isNewChat && <ConversationEmptyState className="flex-1" />} */}
+        {messages.results.length === 0 && !messages.isLoading && (
+          <ConversationEmptyState className="flex-1" />
+        )}
 
         {messages.status === "LoadingFirstPage" && (
           <div className="grid flex-1 place-content-center">

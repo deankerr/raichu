@@ -2,13 +2,13 @@ import { atom } from "jotai"
 import { atomFamily } from "jotai/utils"
 
 export const chatInputAtomFamily = atomFamily(
-  ({ instanceId, modelId, input }: { instanceId: string; modelId?: string; input?: string }) =>
+  ({ id, modelId, input }: { id: string; modelId?: string; input?: string }) =>
     atom({
-      instanceId,
+      id,
       modelId: atom(modelId),
       input: atom(input),
     }),
-  (a, b) => a.instanceId === b.instanceId
+  (a, b) => a.id === b.id
 )
 
 export const chatParamsSidebarOpenAtom = atom(false)

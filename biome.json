@@ -44,7 +44,8 @@
       },
       "style": {
         "noNestedTernary": "off",
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "useBlockStatements": "off"
       },
       "suspicious": {
         "noUnknownAtRules": "off",

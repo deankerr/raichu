@@ -1,8 +1,7 @@
 "use client"
 
-import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { UserButton } from "@stackframe/stack"
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import {
   CircleSlash2Icon,
   MessagesSquareIcon,
@@ -12,8 +11,15 @@ import {
 } from "lucide-react"
 import { OpenRouterMenu } from "@/components/openrouter-menu"
 import { Chat } from "./_components/chat/chat"
+import { NewChat } from "./_components/chat/new-chat"
 import { ThreadExplorer } from "./_components/thread-explorer/thread-explorer"
 import { useWorkspace, WorkspaceProvider } from "./_components/workspace"
+import {
+  activeTabAtomAtom,
+  readActiveTabAtom,
+  type WorkspaceTabAtom,
+  workspaceTabsAtom,
+} from "./_components/workspace2/provider"
 import { leftSidebarOpenAtom } from "./_components/workspace2/store"
 import { TabButton, TabIconButton } from "./_components/workspace2/tabs"
 import { Workspace2 } from "./_components/workspace2/workspace2"
@@ -61,10 +67,36 @@ function LeftSidebarToggle() {
   )
 }
 
+function Tab({ tabAtom }: { tabAtom: WorkspaceTabAtom }) {
+  const dispatch = useSetAtom(workspaceTabsAtom)
+  const tab = useAtomValue(tabAtom)
+
+  return (
+    <TabButton
+      isActive={false}
+      label={tab.title ?? "UNTITLED"}
+      // onClick={() =>
+      //   workspace.dispatch({
+      //     type: "FOCUS_TAB",
+      //     instanceId: tab.instanceId,
+      //   })
+      // }
+      onClose={() =>
+        dispatch({
+          type: "remove",
+          atom: tabAtom,
+        })
+      }
+    />
+  )
+}
+
 function Main() {
   const workspace = useWorkspace()
+  const workspaceTabs = useAtomValue(workspaceTabsAtom)
 
-  const mainActiveTab = workspace.getActiveTab("main")
+  const activeTabAtom = useAtomValue(activeTabAtomAtom)
+  const activeWorkspaceTab = useAtomValue(readActiveTabAtom)
 
   return (
     <Workspace2.Panel>
@@ -72,24 +104,8 @@ function Main() {
         <Workspace2.Row className="h-11 border-b">
           <LeftSidebarToggle />
 
-          {workspace.state.tabs.main.map((tab) => (
-            <TabButton
-              isActive={workspace.getActiveTab("main")?.instanceId === tab.instanceId}
-              key={tab.instanceId}
-              label={tab.title ?? tab.componentName}
-              onClick={() =>
-                workspace.dispatch({
-                  type: "FOCUS_TAB",
-                  instanceId: tab.instanceId,
-                })
-              }
-              onClose={() =>
-                workspace.dispatch({
-                  type: "REMOVE_TAB",
-                  instanceId: tab.instanceId,
-                })
-              }
-            />
+          {workspaceTabs.map((tabAtom) => (
+            <Tab key={tabAtom.toString()} tabAtom={tabAtom} />
           ))}
 
           <div className="flex-1" />
@@ -115,13 +131,19 @@ function Main() {
          * For now all tabs are chats, but this is where we'd branch
          * to different content types in the future
          */}
-        {mainActiveTab ? (
+        {activeWorkspaceTab?.chatId && (
           <Chat
-            chatId={(mainActiveTab.props?.chatId ?? "new") as Id<"chats_v0">}
-            instanceId={mainActiveTab.instanceId}
-            key={mainActiveTab.instanceId}
+            chatId={activeWorkspaceTab.chatId}
+            instanceId={activeWorkspaceTab.instanceId}
+            key={activeWorkspaceTab.instanceId}
           />
-        ) : (
+        )}
+
+        {activeWorkspaceTab && !activeWorkspaceTab.chatId && (
+          <NewChat instanceId={activeWorkspaceTab.instanceId} />
+        )}
+
+        {!activeWorkspaceTab && (
           <div className="grid flex-1 place-content-center text-muted-foreground opacity-50">
             <CircleSlash2Icon />
           </div>

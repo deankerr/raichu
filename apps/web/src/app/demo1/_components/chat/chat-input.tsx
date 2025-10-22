@@ -1,6 +1,3 @@
-import { api } from "@raichu/backend/convex/_generated/api"
-import type { Id } from "@raichu/backend/convex/_generated/dataModel"
-import { useMutation } from "convex/react"
 import { useAtom } from "jotai"
 import {
   PromptInput,
@@ -11,7 +8,6 @@ import {
   PromptInputAttachment,
   PromptInputAttachments,
   PromptInputBody,
-  type PromptInputMessage,
   PromptInputModelSelect,
   PromptInputModelSelectContent,
   PromptInputModelSelectItem,
@@ -25,57 +21,20 @@ import {
 import { chatModelIds } from "./data"
 import { useChatInputAtoms } from "./use-chat"
 
-type ChatInputProps = {
-  chatId: Id<"chats_v0">
-  onChatCreated?: (chatId: string) => void
-}
-
-export function ChatInput({ chatId, onChatCreated }: ChatInputProps) {
-  const [chatAtom] = useChatInputAtoms(chatId)
+export function ChatInput({
+  instanceId,
+  onSubmit,
+}: {
+  instanceId: string
+  onSubmit: React.ComponentProps<typeof PromptInput>["onSubmit"]
+}) {
+  const [chatAtom] = useChatInputAtoms(instanceId)
   const [input, setInput] = useAtom(chatAtom.input)
   const [modelId = chatModelIds[0].value, setModelId] = useAtom(chatAtom.modelId)
 
-  const isNewChat = chatId === "new"
-
-  const createChat = useMutation(api.v0.chats.create)
-  const sendMessage = useMutation(api.v0.messages.send)
-
-  const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!message.text?.trim()) {
-      return
-    }
-
-    const messageText = message.text.trim()
-    setInput("")
-
-    try {
-      const targetChatId = isNewChat
-        ? (
-            await createChat({
-              title: messageText,
-
-              modelId,
-            })
-          ).chatId
-        : chatId
-
-      await sendMessage({
-        chatId: targetChatId,
-        content: messageText,
-      })
-
-      if (isNewChat) {
-        onChatCreated?.(targetChatId)
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
   return (
     <div className="bg-background">
-      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={handleSubmit}>
+      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={onSubmit}>
         <PromptInputBody>
           <PromptInputAttachments>
             {(attachment) => <PromptInputAttachment data={attachment} />}

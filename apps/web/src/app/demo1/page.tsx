@@ -3,7 +3,13 @@
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { UserButton } from "@stackframe/stack"
 import { useAtom } from "jotai"
-import { CircleSlash2Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react"
+import {
+  CircleSlash2Icon,
+  MessagesSquareIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+  PlusIcon,
+} from "lucide-react"
 import { OpenRouterMenu } from "@/components/openrouter-menu"
 import { Chat } from "./_components/chat/chat"
 import { ThreadExplorer } from "./_components/thread-explorer/thread-explorer"
@@ -24,21 +30,14 @@ function UserPanel() {
 }
 
 function LeftSidebar() {
-  const workspace = useWorkspace()
   const [isLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
   return (
     <Workspace2.CollapsiblePanel isCollapsed={!isLeftSidebarOpen}>
       <Workspace2.Stack className="bg-black/30">
         <Workspace2.Row className="h-11 border-b">
-          {workspace.state.tabs.left.map((panel) => (
-            <TabIconButton
-              isActive={workspace.getActiveTab("left")?.instanceId === panel.instanceId}
-              key={panel.instanceId}
-              label={panel.componentName}
-            >
-              {<panel.icon />}
-            </TabIconButton>
-          ))}
+          <TabIconButton isActive={true} label={"Chats Explorer"}>
+            <MessagesSquareIcon />
+          </TabIconButton>
         </Workspace2.Row>
 
         <ThreadExplorer className="flex-1" />

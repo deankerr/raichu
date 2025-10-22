@@ -1,9 +1,12 @@
 import { createThread } from "@convex-dev/agent"
 import { ConvexError, v } from "convex/values"
 import { components } from "../_generated/api"
+import type { Doc } from "../_generated/dataModel"
 import { mutation, type QueryCtx, query } from "../_generated/server"
 import { DEFAULT_MODEL_ID } from "../constants"
 import { getAuthorizedUserOrThrow, getOrCreateAuthorizedUser } from "./users"
+
+export type ChatDoc = Doc<"chats_v0">
 
 export async function getAuthorizedChatOrThrow(ctx: QueryCtx, args: { id: string }) {
   const user = await getAuthorizedUserOrThrow(ctx)

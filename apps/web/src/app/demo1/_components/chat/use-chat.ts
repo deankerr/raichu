@@ -22,6 +22,6 @@ export function useChat(chatId: string) {
   return chats?.find((c) => c._id === chatId)
 }
 
-export function useChatInputAtoms(chatId: string) {
-  return useAtom(chatInputAtomFamily({ chatId }))
+export function useChatInputAtoms(instanceId: string) {
+  return useAtom(chatInputAtomFamily({ instanceId }))
 }

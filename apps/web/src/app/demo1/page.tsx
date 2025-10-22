@@ -118,7 +118,7 @@ function Main() {
          */}
         {mainActiveTab ? (
           <Chat
-            chatId={(mainActiveTab.props?.chatId ?? "new") as Id<"chats">}
+            chatId={(mainActiveTab.props?.chatId ?? "new") as Id<"chats_v0">}
             instanceId={mainActiveTab.instanceId}
             key={mainActiveTab.instanceId}
           />

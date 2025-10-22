@@ -23,18 +23,15 @@ export default defineSchema({
     .index("by_list", ["listId"])
     .index("by_user_and_completed", ["userId", "completed"]),
 
-  chats: defineTable({
+  chats_v0: defineTable({
     userId: v.id("users"),
     threadId: v.string(),
 
     title: v.string(),
 
-    config: v.object({
-      modelId: v.string(),
-      temperature: v.optional(v.number()),
-      maxOutputTokens: v.optional(v.number()),
-      name: v.string(),
-    }),
+    modelId: v.string(),
+    temperature: v.optional(v.number()),
+    maxOutputTokens: v.optional(v.number()),
   }).index("by_userId", ["userId"]),
 
   users: defineTable({

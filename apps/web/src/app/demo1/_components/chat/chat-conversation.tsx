@@ -13,7 +13,7 @@ export function ChatConversation({
   threadId,
   children,
 }: {
-  chatId: Id<"chats">
+  chatId: Id<"chats_v0">
   threadId: string
   children?: React.ReactNode
 }) {

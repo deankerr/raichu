@@ -5,17 +5,16 @@ import { useAtom } from "jotai"
 import { chatInputAtomFamily } from "./store"
 
 export function useThread(threadId: string) {
-  const messages = useUIMessages(
-    api.chat.messages.list,
-    threadId === "new" ? "skip" : { threadId },
-    { initialNumItems: 25, stream: true }
-  )
+  const messages = useUIMessages(api.v0.messages.list, threadId === "new" ? "skip" : { threadId }, {
+    initialNumItems: 25,
+    stream: true,
+  })
 
   return { messages }
 }
 
 export function useChats() {
-  return useQuery(api.chats.list)
+  return useQuery(api.v0.chats.list)
 }
 
 export function useChat(chatId: string) {

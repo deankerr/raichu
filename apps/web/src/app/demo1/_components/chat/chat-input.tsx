@@ -26,7 +26,7 @@ import { chatModelIds } from "./data"
 import { useChatInputAtoms } from "./use-chat"
 
 type ChatInputProps = {
-  chatId: Id<"chats">
+  chatId: Id<"chats_v0">
   onChatCreated?: (chatId: string) => void
 }
 
@@ -37,8 +37,8 @@ export function ChatInput({ chatId, onChatCreated }: ChatInputProps) {
 
   const isNewChat = chatId === "new"
 
-  const createChat = useMutation(api.chat.create)
-  const sendMessage = useMutation(api.chat.message.send)
+  const createChat = useMutation(api.v0.chats.create)
+  const sendMessage = useMutation(api.v0.messages.send)
 
   const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -53,16 +53,16 @@ export function ChatInput({ chatId, onChatCreated }: ChatInputProps) {
       const targetChatId = isNewChat
         ? (
             await createChat({
-              prompt: messageText,
+              title: messageText,
+
               modelId,
-              name: "NameBot",
             })
           ).chatId
         : chatId
 
       await sendMessage({
         chatId: targetChatId,
-        prompt: messageText,
+        content: messageText,
       })
 
       if (isNewChat) {

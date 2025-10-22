@@ -73,11 +73,11 @@ export function ChatMessage({
   ...props
 }: {
   message: UIMessage
-  chatId: Id<"chats">
+  chatId: Id<"chats_v0">
   isLatestMessage: boolean
   showActions?: boolean
 } & React.ComponentProps<"div">) {
-  const deleteMessage = useMutation(api.chat.message.delete_)
+  const deleteMessage = useMutation(api.v0.messages.del)
   const openrouter = getOpenRouterMetadata(message.parts)
   return (
     <div
@@ -187,7 +187,11 @@ export function ChatMessage({
               <CodeIcon className="size-3" />
             </Action>
 
-            <Action label="Delete" onClick={() => deleteMessage({ chatId, messageId: message.id })}>
+            <Action
+              disabled
+              label="Delete"
+              onClick={() => deleteMessage({ messageId: message.id })}
+            >
               <TrashIcon className="size-3" />
             </Action>
           </Actions>

@@ -21,8 +21,8 @@ function ParamsSidebarToggle() {
   )
 }
 
-export function Chat({ instanceId, chatId }: { instanceId: string; chatId: string }) {
-  const deleteChat = useMutation(api.chat.delete_)
+export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"chats_v0"> }) {
+  const deleteChat = useMutation(api.v0.chats.del)
 
   const chat = useChat(chatId)
 
@@ -62,7 +62,7 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: strin
               if (!chat) {
                 return
               }
-              deleteChat({ chatId: chat._id })
+              deleteChat({ id: chat._id })
               workspace.dispatch({
                 type: "REMOVE_TAB",
                 instanceId: tab.instanceId,
@@ -90,7 +90,7 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: strin
 
       {chatId === "new" && (
         <div className="flex flex-1 items-center *:w-full">
-          <ChatInput chatId={chatId as Id<"chats">} onChatCreated={onThreadCreated} />
+          <ChatInput chatId={chatId as Id<"chats_v0">} onChatCreated={onThreadCreated} />
         </div>
       )}
     </Workspace2.Stack>

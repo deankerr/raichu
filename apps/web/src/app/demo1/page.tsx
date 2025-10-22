@@ -119,13 +119,14 @@ function Main() {
         {activeTab?.componentType === "chat" && (
           <Chat
             chatId={activeTab.componentId as Id<"chats_v0">}
-            instanceId={activeTab.tabId}
             key={activeTab.tabId}
+            stateKey={activeTab.componentId}
+            tabId={activeTab.tabId}
           />
         )}
 
         {activeTab?.componentType === "new-chat" && (
-          <NewChat instanceId={activeTab.tabId} key={activeTab.tabId} />
+          <NewChat key={activeTab.tabId} stateKey={activeTab.tabId} tabId={activeTab.tabId} />
         )}
 
         {!activeTab && (

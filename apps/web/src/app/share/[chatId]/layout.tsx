@@ -11,10 +11,10 @@ export async function generateMetadata({
   const { chatId } = await params
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
-  const thread = await convex.query(api.chat.get, { chatId: chatId as Id<"chats"> })
+  const chat = await convex.query(api.v0.chats.get, { id: chatId as Id<"chats_v0"> })
 
   return {
-    title: thread?.title,
+    title: chat?.title,
   }
 }
 

@@ -1,47 +1,21 @@
-import { api } from "@raichu/backend/convex/_generated/api"
-import { useMutation } from "convex/react"
-import { useSetAtom } from "jotai"
-import { toast } from "sonner"
-import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
-import { getErrorMessage } from "@/lib/utils"
 import { useWorkspaceContext } from "../provider"
 import { Workspace } from "../workspace"
 import { ChatInput } from "./chat-input"
 import { ChatTitleBar } from "./chat-titlebar"
-import { useChatInputAtoms } from "./use-chat"
+import { useSendMessage } from "./state"
 
-export function NewChat({ instanceId }: { instanceId: string }) {
-  const createChat = useMutation(api.v0.chats.create)
-  const sendMessage = useMutation(api.v0.messages.send)
+export function NewChat({ tabId, stateKey }: { tabId: string; stateKey: string }) {
   const { controls } = useWorkspaceContext()
 
-  const [chatInputAtoms] = useChatInputAtoms(instanceId)
-  const setInput = useSetAtom(chatInputAtoms.input)
-
-  const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    const messageText = message.text?.trim()
-    if (!messageText) {
-      return
-    }
-
-    try {
-      const { chatId } = await createChat({})
-      await sendMessage({
-        chatId,
-        content: messageText,
-      })
-      setInput("")
-      controls.updateTab(instanceId, {
+  const handleSubmit = useSendMessage({
+    stateKey,
+    onSuccess: ({ chatId }) => {
+      controls.updateTab(tabId, {
         componentType: "chat",
         componentId: chatId,
       })
-    } catch (error) {
-      console.error(error)
-      toast.error(getErrorMessage(error))
-    }
-  }
+    },
+  })
 
   return (
     <Workspace.Stack>
@@ -52,7 +26,7 @@ export function NewChat({ instanceId }: { instanceId: string }) {
       </ChatTitleBar>
 
       <div className="flex flex-1 items-center *:w-full">
-        <ChatInput instanceId={instanceId} onSubmit={handleSubmit} />
+        <ChatInput onSubmit={handleSubmit} stateKey={stateKey} />
       </div>
     </Workspace.Stack>
   )

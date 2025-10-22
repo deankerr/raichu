@@ -7,7 +7,7 @@ import {
 } from "@/components/ai-elements/conversation"
 import { Loader } from "@/components/ai-elements/loader"
 import { ChatMessage } from "./chat-message"
-import { useChat, useThread } from "./use-chat"
+import { useChat, useThread } from "./state"
 
 export function ChatConversation({
   chatId,

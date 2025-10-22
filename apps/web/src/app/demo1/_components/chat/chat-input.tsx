@@ -19,18 +19,18 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { chatModelIds } from "./data"
-import { useChatInputAtoms } from "./use-chat"
+import { useTabLocalState } from "./state"
 
 export function ChatInput({
-  instanceId,
+  stateKey,
   onSubmit,
 }: {
-  instanceId: string
+  stateKey: string
   onSubmit: React.ComponentProps<typeof PromptInput>["onSubmit"]
 }) {
-  const [chatAtom] = useChatInputAtoms(instanceId)
-  const [input, setInput] = useAtom(chatAtom.input)
-  const [modelId = chatModelIds[0].value, setModelId] = useAtom(chatAtom.modelId)
+  const [tabState] = useTabLocalState(stateKey)
+  const [input, setInput] = useAtom(tabState.input)
+  const [modelId = chatModelIds[0].value, setModelId] = useAtom(tabState.modelId)
 
   return (
     <div className="bg-background">

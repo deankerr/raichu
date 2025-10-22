@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useState } from "react"
 import { useArrayState } from "rooks"
+import { cleanupTabLocalState } from "./chat/state"
 
 export type WorkspaceTab = {
   tabId: string
@@ -59,12 +60,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
 
   const removeTab = (tabId: string) => {
-    const index = tabs.findIndex((tab) => tab.tabId === tabId)
+    const index = tabs.findIndex((t) => t.tabId === tabId)
     if (index === -1) return
 
+    const tab = tabs[index]
     const isActive = activeTabId === tabId
 
     tabControls.removeItemAtIndex(index)
+
+    // Cleanup orphaned new-chat state (for existing chats, state persists via chatId)
+    if (tab.componentType === "new-chat") {
+      cleanupTabLocalState(tab.tabId)
+    }
 
     // Handle active tab change after removal
     if (isActive) {

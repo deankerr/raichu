@@ -1,13 +1,14 @@
+import { api } from "@raichu/backend/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { MessagesSquareIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
-import { useChats } from "../chat/use-chat"
 import { useWorkspaceContext } from "../provider"
 import { Workspace } from "../workspace"
 
 export function ChatsMenu({ children, className, ...props }: React.ComponentProps<"div">) {
-  const chats = useChats()
+  const chats = useQuery(api.v0.chats.list)
   const { tabs, activeTab, controls } = useWorkspaceContext()
 
   return (

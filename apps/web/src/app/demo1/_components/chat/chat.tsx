@@ -1,63 +1,34 @@
 import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
-import { useAtom, useSetAtom } from "jotai"
+import { useAtom } from "jotai"
 import { PanelRightCloseIcon, PanelRightOpenIcon, ShareIcon, TrashIcon } from "lucide-react"
-import { toast } from "sonner"
-import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
 import { Button } from "@/components/ui/button"
-import { getErrorMessage } from "@/lib/utils"
 import { useWorkspaceContext } from "../provider"
 import { Workspace } from "../workspace"
 import { ChatConversation } from "./chat-conversation"
 import { ChatInput } from "./chat-input"
 import { ChatTitleBar } from "./chat-titlebar"
-import { chatParamsSidebarOpenAtom } from "./store"
-import { useChat, useChatInputAtoms } from "./use-chat"
+import { useChat, useSendMessage, useTabLocalState } from "./state"
 
-function ParamsSidebarToggle() {
-  const [isOpen, setOpen] = useAtom(chatParamsSidebarOpenAtom)
-  return (
-    <Button onClick={() => setOpen(!isOpen)} size="icon-sm" variant="ghost">
-      {isOpen ? <PanelRightCloseIcon /> : <PanelRightOpenIcon />}
-      <span className="sr-only">{isOpen ? "Hide sidebar" : "Show sidebar"}</span>
-    </Button>
-  )
-}
-
-export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"chats_v0"> }) {
-  const [isParamsSidebarOpen] = useAtom(chatParamsSidebarOpenAtom)
-
+export function Chat({
+  tabId,
+  chatId,
+  stateKey,
+}: {
+  tabId: string
+  chatId: Id<"chats_v0">
+  stateKey: string
+}) {
   const { controls } = useWorkspaceContext()
 
   const deleteChat = useMutation(api.v0.chats.del)
   const chat = useChat(chatId)
 
-  const [chatInputAtoms] = useChatInputAtoms(chatId)
-  const setInput = useSetAtom(chatInputAtoms.input)
+  const [tabState] = useTabLocalState(stateKey)
+  const [isSidebarOpen, setSidebarOpen] = useAtom(tabState.sidebarOpen)
 
-  const sendMessage = useMutation(api.v0.messages.send)
-
-  const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    const messageText = message.text?.trim()
-
-    if (!messageText) {
-      return
-    }
-
-    try {
-      await sendMessage({
-        chatId,
-        content: messageText,
-      })
-      setInput("")
-    } catch (error) {
-      console.error(error)
-      toast.error(getErrorMessage(error))
-    }
-  }
+  const handleSubmit = useSendMessage({ stateKey, chatId })
 
   return (
     <Workspace.Stack>
@@ -65,11 +36,10 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
         <div />
         <div className="text-center">{chat?.title ?? "Chat"}</div>
         <div className="text-right">
-          <ParamsSidebarToggle />
-
-          {/* <Button onClick={() => console.log({ thread, messages })} size="icon-sm" variant="ghost">
-            <CodeIcon />
-          </Button> */}
+          <Button onClick={() => setSidebarOpen(!isSidebarOpen)} size="icon-sm" variant="ghost">
+            {isSidebarOpen ? <PanelRightCloseIcon /> : <PanelRightOpenIcon />}
+            <span className="sr-only">{isSidebarOpen ? "Hide sidebar" : "Show sidebar"}</span>
+          </Button>
 
           <Button asChild disabled={!chat?._id} size="icon-sm" title="Share thread" variant="ghost">
             <a href={`/share/${chatId}`} rel="noopener noreferrer" target="_blank">
@@ -79,11 +49,9 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
 
           <Button
             onClick={() => {
-              if (!chat) {
-                return
-              }
+              if (!chat) return
               deleteChat({ id: chat._id })
-              controls.removeTab(instanceId)
+              controls.removeTab(tabId)
             }}
             size="icon-sm"
             variant="ghost"
@@ -96,10 +64,10 @@ export function Chat({ instanceId, chatId }: { instanceId: string; chatId: Id<"c
       {chat && (
         <Workspace.Group>
           <ChatConversation chatId={chat._id}>
-            <ChatInput instanceId={chatId} onSubmit={handleSubmit} />
+            <ChatInput onSubmit={handleSubmit} stateKey={stateKey} />
           </ChatConversation>
 
-          <Workspace.CollapsiblePanel isCollapsed={!isParamsSidebarOpen}>
+          <Workspace.CollapsiblePanel isCollapsed={!isSidebarOpen}>
             <Workspace.Stack>
               (prompt/param options panel)
               {/* TODO: temperature, max tokens, system prompt, agent name, etc. */}

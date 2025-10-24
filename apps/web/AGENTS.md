@@ -1,7 +1,3 @@
----
-alwaysApply: true
----
-
 # Web Development Framework Updates for 2025 AI Coding Assistants
 
 ## React 19 - Major Changes

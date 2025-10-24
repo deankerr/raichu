@@ -7,9 +7,6 @@
     "dev:dashboard": "convex dashboard",
     "check-types": "tsc --noEmit -p convex"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@types/node": "^24.9.1",
     "typescript": "^5.9.3"

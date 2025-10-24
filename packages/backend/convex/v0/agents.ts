@@ -10,11 +10,9 @@ import { stackServerApp } from "../lib/stack"
 import { todoTools } from "../todoTools"
 
 export const baseAgent = new Agent(components.agent, {
-  name: "SmartRutter Home Assistant",
+  name: "Base Agent",
   languageModel: openrouter.chat(DEFAULT_MODEL_ID),
   textEmbeddingModel: openai.embedding("text-embedding-3-small"),
-  instructions:
-    "You are a helpful AI assistant named SmartRutter Home Assistant. Be concise, helpful, and engaging. You can help users manage their todo lists using the available tools.",
   tools: todoTools,
   rawRequestResponseHandler: (_ctx, { request, response, ...rest }) => {
     console.log(rest, request.body, omit(response, ["headers"]))
@@ -35,8 +33,11 @@ export const streamResponseAsync = internalAction({
     modelId: v.optional(v.string()),
     temperature: v.optional(v.number()),
     maxOutputTokens: v.optional(v.number()),
+    instructions: v.optional(v.string()),
   },
-  handler: async (ctx, { threadId, userSubject, modelId, ...args }) => {
+  handler: async (ctx, { threadId, userSubject, modelId, ...chatArgs }) => {
+    console.log({ chatArgs })
+
     const stackUser = await stackServerApp.getUser(userSubject)
     if (!stackUser) {
       throw new ConvexError({
@@ -68,7 +69,8 @@ export const streamResponseAsync = internalAction({
       ctx,
       { threadId },
       {
-        ...args,
+        ...chatArgs,
+        system: chatArgs.instructions,
         model: openrouterProvider.chat(modelId ?? DEFAULT_MODEL_ID),
       },
       // more custom delta options (`true` uses defaults)

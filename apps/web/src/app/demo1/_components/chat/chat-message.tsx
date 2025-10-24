@@ -170,6 +170,9 @@ export function ChatMessage({
       <div className="flex items-center gap-2 group-data-[message-role=user]:justify-end">
         {showActions && (
           <Actions className={cn("mt-0 shrink-0")}>
+            <div className="px-1 font-mono text-[10px] text-muted-foreground">
+              {message.id.slice(0, 8)}
+            </div>
             {message.role === "assistant" && isLatestMessage && (
               <Action
                 disabled // TODO
@@ -187,11 +190,7 @@ export function ChatMessage({
               <CodeIcon className="size-3" />
             </Action>
 
-            <Action
-              disabled
-              label="Delete"
-              onClick={() => deleteMessage({ messageId: message.id })}
-            >
+            <Action label="Delete" onClick={() => deleteMessage({ messageId: message.id })}>
               <TrashIcon className="size-3" />
             </Action>
           </Actions>

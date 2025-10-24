@@ -1,8 +1,9 @@
 import { useUIMessages } from "@convex-dev/agent/react"
 import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
+import { DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_TEMPERATURE } from "@raichu/backend/convex/constants"
 import { useMutation, useQuery } from "convex/react"
-import { atom, useAtom } from "jotai"
+import { atom, useAtom, useAtomValue } from "jotai"
 import { atomFamily } from "jotai/utils"
 import { toast } from "sonner"
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
@@ -35,12 +36,28 @@ export const tabLocalStateFamily = atomFamily(
   ({ id, modelId, input }: { id: string; modelId?: string; input?: string }) =>
     atom({
       id,
-      modelId: atom(modelId),
-      input: atom(input),
       sidebarOpen: atom(false),
+      input: atom(input),
+      modelId: atom(modelId),
+      temperature: atom(DEFAULT_TEMPERATURE),
+      maxOutputTokens: atom(DEFAULT_MAX_OUTPUT_TOKENS),
+      instructions: atom(""),
     }),
   (a, b) => a.id === b.id
 )
+
+const readChatArgsAtom = atom((get) => ({
+  read: (id: string) => {
+    const localState = get(tabLocalStateFamily({ id }))
+
+    return {
+      modelId: get(localState.modelId),
+      temperature: get(localState.temperature),
+      maxOutputTokens: get(localState.maxOutputTokens),
+      instructions: get(localState.instructions),
+    }
+  },
+}))
 
 export function useTabLocalState(stateKey: string) {
   return useAtom(tabLocalStateFamily({ id: stateKey }))
@@ -69,6 +86,8 @@ export function useSendMessage(args: {
   const createChat = useMutation(api.v0.chats.create)
   const sendMessage = useMutation(api.v0.messages.send)
 
+  const chatArgsReader = useAtomValue(readChatArgsAtom)
+
   const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -86,11 +105,18 @@ export function useSendMessage(args: {
         chatId = result.chatId
       }
 
-      /* Send the message */
-      await sendMessage({
-        chatId,
+      const chatArgs = chatArgsReader.read(args.stateKey)
+
+      const sendMessageArgs = {
+        ...chatArgs,
         content: messageText,
-      })
+        chatId,
+      }
+
+      console.log("sendMessage", sendMessageArgs)
+
+      /* Send the message with settings */
+      await sendMessage(sendMessageArgs)
 
       clearInput()
 

@@ -1,13 +1,15 @@
 import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
-import { useAtom } from "jotai"
+import { useAtom, useSetAtom } from "jotai"
 import { PanelRightCloseIcon, PanelRightOpenIcon, ShareIcon, TrashIcon } from "lucide-react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useWorkspaceContext } from "../provider"
 import { Workspace } from "../workspace"
 import { ChatConversation } from "./chat-conversation"
 import { ChatInput } from "./chat-input"
+import { ChatSettings } from "./chat-settings"
 import { ChatTitleBar } from "./chat-titlebar"
 import { useChat, useSendMessage, useTabLocalState } from "./state"
 
@@ -28,7 +30,24 @@ export function Chat({
   const [tabState] = useTabLocalState(stateKey)
   const [isSidebarOpen, setSidebarOpen] = useAtom(tabState.sidebarOpen)
 
+  // Get setters for chat settings
+  const setModelId = useSetAtom(tabState.modelId)
+  const setTemperature = useSetAtom(tabState.temperature)
+  const setMaxOutputTokens = useSetAtom(tabState.maxOutputTokens)
+  const setInstructions = useSetAtom(tabState.instructions)
+
   const handleSubmit = useSendMessage({ stateKey, chatId })
+
+  // Sync chat settings with local state when chat is loaded
+  useEffect(() => {
+    if (!chat) return
+
+    // Update local state with chat settings from the backend
+    if (chat.modelId !== undefined) setModelId(chat.modelId)
+    if (chat.temperature !== undefined) setTemperature(chat.temperature)
+    if (chat.maxOutputTokens !== undefined) setMaxOutputTokens(chat.maxOutputTokens)
+    if (chat.instructions !== undefined) setInstructions(chat.instructions)
+  }, [chat, setModelId, setTemperature, setMaxOutputTokens, setInstructions])
 
   return (
     <Workspace.Stack>
@@ -67,10 +86,9 @@ export function Chat({
             <ChatInput onSubmit={handleSubmit} stateKey={stateKey} />
           </ChatConversation>
 
-          <Workspace.CollapsiblePanel isCollapsed={!isSidebarOpen}>
+          <Workspace.CollapsiblePanel className="border-t" isCollapsed={!isSidebarOpen}>
             <Workspace.Stack>
-              (prompt/param options panel)
-              {/* TODO: temperature, max tokens, system prompt, agent name, etc. */}
+              <ChatSettings stateKey={stateKey} />
             </Workspace.Stack>
           </Workspace.CollapsiblePanel>
         </Workspace.Group>

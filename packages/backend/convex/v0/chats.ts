@@ -55,6 +55,7 @@ export const create = mutation({
     modelId: v.optional(v.string()),
     temperature: v.optional(v.number()),
     maxOutputTokens: v.optional(v.number()),
+    instructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getOrCreateAuthorizedUser(ctx)
@@ -62,7 +63,13 @@ export const create = mutation({
       userId: user._id,
     })
 
-    const { title = "", modelId = DEFAULT_MODEL_ID, temperature, maxOutputTokens } = args
+    const {
+      title = "",
+      modelId = DEFAULT_MODEL_ID,
+      temperature,
+      maxOutputTokens,
+      instructions,
+    } = args
 
     const chatId = await ctx.db.insert("chats_v0", {
       userId: user._id,
@@ -71,6 +78,7 @@ export const create = mutation({
       modelId,
       temperature,
       maxOutputTokens,
+      instructions,
     })
 
     return { chatId }

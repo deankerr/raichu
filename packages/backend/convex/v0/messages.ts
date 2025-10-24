@@ -19,7 +19,7 @@ export const list = query({
     streamArgs: vStreamArgs,
   },
   handler: async (ctx, args) => {
-    // TODO authorize
+    // NOTE: currently not authorized, but you can't get here without the chat
 
     // NOTE: we don't use the agents listUIMessages method because it removes the model id
     const messageDocs = await listMessages(ctx, components.agent, {
@@ -80,14 +80,30 @@ export const send = mutation({
     modelId: v.optional(v.string()),
     temperature: v.optional(v.number()),
     maxOutputTokens: v.optional(v.number()),
+    instructions: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const chat = await getAuthorizedChatOrThrow(ctx, { id: args.chatId })
+  handler: async (ctx, { chatId, content, ...updatedChatArgs }) => {
+    console.log({ updatedChatArgs })
+
+    const chat = await getAuthorizedChatOrThrow(ctx, { id: chatId })
 
     const { messageId } = await saveMessage(ctx, components.agent, {
       threadId: chat.threadId,
       userId: chat.userId,
-      prompt: args.content,
+      prompt: content,
+    })
+
+    const chatArgs = {
+      modelId: updatedChatArgs.modelId ?? chat.modelId,
+      temperature: updatedChatArgs.temperature ?? chat.temperature,
+      maxOutputTokens: updatedChatArgs.maxOutputTokens ?? chat.maxOutputTokens,
+      instructions: updatedChatArgs.instructions ?? chat.instructions,
+    }
+
+    console.log({ chatArgs })
+
+    await ctx.db.patch(chat._id, {
+      ...chatArgs,
     })
 
     const user = await getAuthorizedUserOrThrow(ctx)
@@ -96,6 +112,7 @@ export const send = mutation({
       userSubject: user.subject,
       threadId: chat.threadId,
       promptMessageId: messageId,
+      ...chatArgs,
     })
 
     return { messageId }

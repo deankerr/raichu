@@ -30,6 +30,7 @@ export default defineSchema({
     title: v.string(),
 
     modelId: v.string(),
+    instructions: v.optional(v.string()),
     temperature: v.optional(v.number()),
     maxOutputTokens: v.optional(v.number()),
   }).index("by_userId", ["userId"]),

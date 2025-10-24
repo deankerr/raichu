@@ -37,7 +37,6 @@ export const store = action({
 
     const timestamp = Date.now()
     const key = parsed.data
-    // biome-ignore lint/style/noMagicNumbers: this is how OR signatures are formatted
     const signature = `${key.slice(0, 9)}…${key.slice(-3)}`
 
     await stackUser.update({

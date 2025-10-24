@@ -1,20 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalPassThroughEnv": [
+    "NEXT_PUBLIC_CONVEX_URL",
+    "NEXT_PUBLIC_POSTHOG_KEY",
+    "NEXT_PUBLIC_POSTHOG_HOST",
+    "NEXT_PUBLIC_TITLE_PREFIX",
+    "NEXT_PUBLIC_STACK_PROJECT_ID",
+    "NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY",
+    "STACK_SECRET_SERVER_KEY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*",
-        "NEXT_PUBLIC_CONVEX_URL",
-        "NEXT_PUBLIC_POSTHOG_KEY",
-        "NEXT_PUBLIC_POSTHOG_HOST",
-        "NEXT_PUBLIC_TITLE_PREFIX",
-        "NEXT_PUBLIC_STACK_PROJECT_ID",
-        "NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY",
-        "STACK_SECRET_SERVER_KEY"
-      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "check": {

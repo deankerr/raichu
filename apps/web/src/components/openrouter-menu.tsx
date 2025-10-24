@@ -18,7 +18,7 @@ import { useOpenRouterPkce } from "@/hooks/use-openrouter-pkce"
 
 export function OpenRouterMenu() {
   const user = useUser()
-  const storeKey = useAction(api.keys.store)
+  const storeKey = useAction(api.v0.users.storeOpenRouterApiKey)
   const { status, key, connect, reset } = useOpenRouterPkce()
 
   const isProcessing = status === "redirect" || status === "exchanging"

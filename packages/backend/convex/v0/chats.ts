@@ -4,7 +4,7 @@ import { components } from "../_generated/api"
 import type { Doc } from "../_generated/dataModel"
 import { mutation, type QueryCtx, query } from "../_generated/server"
 import { DEFAULT_MODEL_ID } from "../constants"
-import { getAuthorizedUserOrThrow, getOrCreateAuthorizedUser } from "./users"
+import { getAuthorizedUser, getAuthorizedUserOrThrow, getOrCreateAuthorizedUser } from "./users"
 
 export type ChatDoc = Doc<"chats_v0">
 
@@ -38,7 +38,11 @@ export const get = query({
 
 export const list = query({
   handler: async (ctx) => {
-    const user = await getAuthorizedUserOrThrow(ctx)
+    const user = await getAuthorizedUser(ctx)
+    if (!user) {
+      return []
+    }
+
     const chats = await ctx.db
       .query("chats_v0")
       .withIndex("by_userId", (q) => q.eq("userId", user._id))

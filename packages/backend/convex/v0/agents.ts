@@ -1,13 +1,13 @@
 import { openai } from "@ai-sdk/openai"
 import { Agent } from "@convex-dev/agent"
 import { createOpenRouter, openrouter } from "@openrouter/ai-sdk-provider"
-import { ConvexError, v } from "convex/values"
+import { v } from "convex/values"
 import { omit } from "convex-helpers"
 import { components } from "../_generated/api"
 import { internalAction } from "../_generated/server"
 import { DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MODEL_ID, DEFAULT_TEMPERATURE } from "../constants"
-import { stackServerApp } from "../lib/stack"
 import { todoTools } from "../todoTools"
+import { getUserOpenRouterApiKey } from "./lib/auth"
 
 export const baseAgent = new Agent(components.agent, {
   name: "Base Agent",
@@ -38,22 +38,8 @@ export const streamResponseAsync = internalAction({
   handler: async (ctx, { threadId, userSubject, modelId, ...chatArgs }) => {
     console.log({ chatArgs })
 
-    const stackUser = await stackServerApp.getUser(userSubject)
-    if (!stackUser) {
-      throw new ConvexError({
-        message: "User not found",
-      })
-    }
-
-    const openrouterApiKey = stackUser.serverMetadata?.openrouterApiKey
-    if (!openrouterApiKey) {
-      throw new ConvexError({
-        message: "OpenRouter API key not found",
-      })
-    }
-
     const openrouterProvider = createOpenRouter({
-      apiKey: openrouterApiKey,
+      apiKey: await getUserOpenRouterApiKey({ subject: userSubject }),
       compatibility: "strict",
       extraBody: {
         usage: {

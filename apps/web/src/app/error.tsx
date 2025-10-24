@@ -23,7 +23,12 @@ export default function ErrorPage({ error }: { error: Error & { digest?: string 
         <AlertDescription>
           An error occurred while rendering this page. These options may help:
           <div className="mt-2 space-x-2">
-            <Button onClick={() => router.refresh()} variant="secondary">
+            <Button
+              onClick={() => {
+                window.location.reload()
+              }}
+              variant="secondary"
+            >
               Refresh Page
             </Button>
 

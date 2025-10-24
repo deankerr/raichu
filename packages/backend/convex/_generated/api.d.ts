@@ -10,8 +10,6 @@
 
 import type * as constants from "../constants.js";
 import type * as healthCheck from "../healthCheck.js";
-import type * as keys from "../keys.js";
-import type * as lib_stack from "../lib/stack.js";
 import type * as playground from "../playground.js";
 import type * as todoLists from "../todoLists.js";
 import type * as todoTools from "../todoTools.js";
@@ -19,6 +17,7 @@ import type * as todos from "../todos.js";
 import type * as utils from "../utils.js";
 import type * as v0_agents from "../v0/agents.js";
 import type * as v0_chats from "../v0/chats.js";
+import type * as v0_lib_auth from "../v0/lib/auth.js";
 import type * as v0_messages from "../v0/messages.js";
 import type * as v0_users from "../v0/users.js";
 
@@ -39,8 +38,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   constants: typeof constants;
   healthCheck: typeof healthCheck;
-  keys: typeof keys;
-  "lib/stack": typeof lib_stack;
   playground: typeof playground;
   todoLists: typeof todoLists;
   todoTools: typeof todoTools;
@@ -48,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   utils: typeof utils;
   "v0/agents": typeof v0_agents;
   "v0/chats": typeof v0_chats;
+  "v0/lib/auth": typeof v0_lib_auth;
   "v0/messages": typeof v0_messages;
   "v0/users": typeof v0_users;
 }>;

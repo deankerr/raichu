@@ -34,8 +34,8 @@ function CollapsiblePanel({
     <div
       className={cn(
         "flex w-64 shrink-0 overflow-hidden transition-[width] duration-200 ease-out",
-        isCollapsed ? "pointer-events-none w-0" : "first:border-r last:border-l",
-        className
+        className,
+        isCollapsed ? "pointer-events-none w-0" : "first:border-r last:border-l"
       )}
       data-workspace-slot="collapsible-panel"
       {...props}

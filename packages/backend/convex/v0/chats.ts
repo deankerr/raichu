@@ -63,9 +63,6 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getOrCreateAuthorizedUser(ctx)
-    const threadId = await createThread(ctx, components.agent, {
-      userId: user._id,
-    })
 
     const {
       title = "",
@@ -75,10 +72,15 @@ export const create = mutation({
       instructions,
     } = args
 
+    const threadId = await createThread(ctx, components.agent, {
+      userId: user._id,
+      title: title.slice(0, 100),
+    })
+
     const chatId = await ctx.db.insert("chats_v0", {
       userId: user._id,
       threadId,
-      title,
+      title: title.slice(0, 100),
       modelId,
       temperature,
       maxOutputTokens,

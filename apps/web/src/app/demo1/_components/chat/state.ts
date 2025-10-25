@@ -3,12 +3,11 @@ import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_TEMPERATURE } from "@raichu/backend/convex/constants"
 import { useMutation, useQuery } from "convex/react"
-import { atom, useAtom, useAtomValue } from "jotai"
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
 import { atomFamily } from "jotai/utils"
 import { toast } from "sonner"
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
 import { getErrorMessage } from "@/lib/utils"
-import { validateMessage } from "./utils"
 
 /* ************************************************************************** *
  * Remote Data Hooks (query backend)
@@ -65,7 +64,7 @@ export function useTabLocalState(stateKey: string) {
 
 export function useClearInput(stateKey: string) {
   const [tabState] = useTabLocalState(stateKey)
-  const setInput = useAtom(tabState.input)[1]
+  const setInput = useSetAtom(tabState.input)
   return () => setInput("")
 }
 
@@ -91,7 +90,7 @@ export function useSendMessage(args: {
   const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const messageText = validateMessage(message)
+    const messageText = message.text?.trim()
     if (!messageText) {
       return
     }
@@ -101,7 +100,9 @@ export function useSendMessage(args: {
 
       /* Create new chat if needed */
       if (!chatId) {
-        const result = await createChat({})
+        const result = await createChat({
+          title: messageText.slice(0, 100),
+        })
         chatId = result.chatId
       }
 
@@ -121,9 +122,7 @@ export function useSendMessage(args: {
       clearInput()
 
       /* Call success callback if chat was just created */
-      if (args.onSuccess && !args.chatId) {
-        args.onSuccess({ chatId })
-      }
+      args.onSuccess?.({ chatId })
     } catch (error) {
       console.error(error)
       toast.error(getErrorMessage(error))

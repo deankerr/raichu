@@ -10,10 +10,17 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 import { chatModelIds } from "./data"
 import { useTabLocalState } from "./state"
 
-export function ChatSettings({ stateKey }: { stateKey: string }) {
+export function ChatSettings({
+  stateKey,
+  className,
+  ...props
+}: {
+  stateKey: string
+} & React.ComponentProps<"div">) {
   const [tabState] = useTabLocalState(stateKey)
 
   const [modelId, setModelId] = useAtom(tabState.modelId)
@@ -22,8 +29,8 @@ export function ChatSettings({ stateKey }: { stateKey: string }) {
   const [instructions, setInstructions] = useAtom(tabState.instructions)
 
   return (
-    <div className="w-64 space-y-4 p-4">
-      <h3 className="font-medium text-sm">Chat Settings</h3>
+    <div className={cn("space-y-4 p-4", className)} {...props}>
+      <div className="font-medium text-sm">Chat Settings</div>
 
       {/* Model Selection */}
       <div className="space-y-2">

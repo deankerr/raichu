@@ -13,7 +13,6 @@ import {
 import { OpenRouterMenu } from "@/components/openrouter-menu"
 import { Toggle } from "@/components/ui/toggle"
 import { Chat } from "./_components/chat/chat"
-import { NewChat } from "./_components/chat/new-chat"
 import { ChatsMenu } from "./_components/chats-menu/chats-menu"
 import { useWorkspaceContext, WorkspaceProvider } from "./_components/provider"
 import { leftSidebarOpenAtom } from "./_components/store"
@@ -102,7 +101,7 @@ function Main() {
             label="New Chat"
             onClick={() => {
               controls.addTab({
-                componentType: "new-chat",
+                componentType: "chat",
                 componentId: "",
                 title: "New Chat",
               })
@@ -123,10 +122,6 @@ function Main() {
             stateKey={activeTab.componentId}
             tabId={activeTab.tabId}
           />
-        )}
-
-        {activeTab?.componentType === "new-chat" && (
-          <NewChat key={activeTab.tabId} stateKey={activeTab.tabId} tabId={activeTab.tabId} />
         )}
 
         {!activeTab && (

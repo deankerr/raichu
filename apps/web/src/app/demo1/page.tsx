@@ -5,6 +5,7 @@ import { UserButton } from "@stackframe/stack"
 import { useAtom } from "jotai"
 import {
   CircleSlash2Icon,
+  FileTextIcon,
   MessagesSquareIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
@@ -14,6 +15,8 @@ import { OpenRouterMenu } from "@/components/openrouter-menu"
 import { Toggle } from "@/components/ui/toggle"
 import { Chat } from "./_components/chat/chat"
 import { ChatsMenu } from "./_components/chats-menu/chats-menu"
+import { PersonalNote } from "./_components/personal-note/personal-note"
+import { PersonalNotesMenu } from "./_components/personal-notes-menu/personal-notes-menu"
 import { useWorkspaceContext, WorkspaceProvider } from "./_components/provider"
 import { leftSidebarOpenAtom } from "./_components/store"
 import { TabButton, TabIconButton } from "./_components/tabs"
@@ -32,16 +35,30 @@ function UserPanel() {
 
 function LeftSidebar() {
   const [isLeftSidebarOpen] = useAtom(leftSidebarOpenAtom)
+  const { sidebarTab, controls } = useWorkspaceContext()
+
   return (
     <Workspace.CollapsiblePanel isCollapsed={!isLeftSidebarOpen}>
       <Workspace.Stack className="bg-black/30">
         <Workspace.Row className="h-11 border-b">
-          <TabIconButton isActive={true} label={"Chats Explorer"}>
+          <TabIconButton
+            isActive={sidebarTab === "chats"}
+            label="Chats Menu"
+            onClick={() => controls.setSidebarTab("chats")}
+          >
             <MessagesSquareIcon />
+          </TabIconButton>
+          <TabIconButton
+            isActive={sidebarTab === "notes"}
+            label="Personal Notes Menu"
+            onClick={() => controls.setSidebarTab("notes")}
+          >
+            <FileTextIcon />
           </TabIconButton>
         </Workspace.Row>
 
-        <ChatsMenu className="flex-1" />
+        {sidebarTab === "chats" && <ChatsMenu className="flex-1" />}
+        {sidebarTab === "notes" && <PersonalNotesMenu className="flex-1" />}
 
         <UserPanel />
       </Workspace.Stack>
@@ -109,6 +126,20 @@ function Main() {
           >
             <PlusIcon />
           </TabIconButton>
+
+          <TabIconButton
+            isActive={false}
+            label="New Note"
+            onClick={() => {
+              controls.addTab({
+                componentType: "personal-note",
+                componentId: "",
+                title: "New Note",
+              })
+            }}
+          >
+            <FileTextIcon />
+          </TabIconButton>
         </Workspace.Row>
 
         {/*
@@ -120,6 +151,14 @@ function Main() {
             chatId={activeTab.componentId as Id<"chats_v0">}
             key={activeTab.tabId}
             stateKey={activeTab.componentId}
+            tabId={activeTab.tabId}
+          />
+        )}
+
+        {activeTab?.componentType === "personal-note" && (
+          <PersonalNote
+            key={activeTab.tabId}
+            noteId={activeTab.componentId as Id<"personalNotes">}
             tabId={activeTab.tabId}
           />
         )}

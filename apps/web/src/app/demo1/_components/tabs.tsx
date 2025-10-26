@@ -39,7 +39,7 @@ export function TabButton({
       <button
         aria-label="Close tab"
         className={cn(
-          "mr-1 hidden flex-shrink-0 self-center rounded p-1 transition-opacity hover:bg-muted-foreground/20 group-hover:block",
+          "mr-1 hidden shrink-0 self-center rounded p-1 transition-opacity hover:bg-muted-foreground/20 group-hover:block",
           isActive && "block"
         )}
         onClick={(e) => {

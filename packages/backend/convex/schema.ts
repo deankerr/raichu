@@ -35,6 +35,18 @@ export default defineSchema({
     maxOutputTokens: v.optional(v.number()),
   }).index("by_userId", ["userId"]),
 
+  personalNotes: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    contentId: v.id("personalNoteContents"),
+    updatedAt: v.number(),
+  }).index("by_userId", ["userId"]),
+
+  personalNoteContents: defineTable({
+    content: v.string(),
+    userId: v.id("users"),
+  }).index("by_userId", ["userId"]),
+
   users: defineTable({
     tokenIdentifier: v.string(),
   }).index("by_tokenIdentifier", ["tokenIdentifier"]),

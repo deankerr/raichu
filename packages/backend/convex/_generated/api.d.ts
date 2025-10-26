@@ -19,6 +19,7 @@ import type * as v0_agents from "../v0/agents.js";
 import type * as v0_chats from "../v0/chats.js";
 import type * as v0_lib_auth from "../v0/lib/auth.js";
 import type * as v0_messages from "../v0/messages.js";
+import type * as v0_personalNotes from "../v0/personalNotes.js";
 import type * as v0_users from "../v0/users.js";
 
 import type {
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   "v0/chats": typeof v0_chats;
   "v0/lib/auth": typeof v0_lib_auth;
   "v0/messages": typeof v0_messages;
+  "v0/personalNotes": typeof v0_personalNotes;
   "v0/users": typeof v0_users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

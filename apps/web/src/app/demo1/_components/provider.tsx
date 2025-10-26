@@ -17,6 +17,7 @@ type WorkspaceContextValue = {
   tabs: WorkspaceTab[]
   activeTab: WorkspaceTab | null
   activeTabId: string | null
+  sidebarTab: "chats" | "notes"
   controls: {
     addTab: (args: {
       componentType: string
@@ -27,6 +28,7 @@ type WorkspaceContextValue = {
     removeTab: (tabId: string) => void
     updateTab: (tabId: string, updates: Partial<Omit<WorkspaceTab, "tabId">>) => void
     setActiveTab: (tabId: string | null) => void
+    setSidebarTab: (tab: "chats" | "notes") => void
   }
 }
 
@@ -35,6 +37,7 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [tabs, tabControls] = useArrayState<WorkspaceTab>([])
   const [activeTabId, setActiveTabId] = useState<string | null>(null)
+  const [sidebarTab, setSidebarTab] = useState<"chats" | "notes">("chats")
 
   const addTab = (args: {
     componentType: string
@@ -121,11 +124,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         tabs,
         activeTab,
         activeTabId,
+        sidebarTab,
         controls: {
           addTab,
           removeTab,
           updateTab,
           setActiveTab,
+          setSidebarTab,
         },
       }}
     >

@@ -1,13 +1,33 @@
 import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { useMutation, useQuery } from "convex/react"
-import { MessagesSquareIcon, MoreHorizontalIcon, ShareIcon, TrashIcon } from "lucide-react"
+import {
+  EditIcon,
+  MessagesSquareIcon,
+  MoreHorizontalIcon,
+  ShareIcon,
+  TrashIcon,
+} from "lucide-react"
+import { useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { useWorkspaceContext } from "../provider"
@@ -131,6 +151,12 @@ export function ChatMenuButton({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="right" sideOffset={4}>
+          <EditTitleDialog chatId={chatId} currentTitle={title}>
+            <DropdownMenuDialogTrigger>
+              <EditIcon className="size-3.5" />
+              Edit Title
+            </DropdownMenuDialogTrigger>
+          </EditTitleDialog>
           <DropdownMenuItem onClick={handleShare}>
             <ShareIcon className="size-3.5" />
             Share
@@ -145,5 +171,78 @@ export function ChatMenuButton({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+  )
+}
+
+// mimics DropdownMenuItem without closing the menu on click
+function DropdownMenuDialogTrigger({
+  className,
+  inset,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"div"> & {
+  inset?: boolean
+  variant?: "default" | "destructive"
+}) {
+  return (
+    <div
+      className={cn(
+        "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-inset:pl-8 data-[variant=destructive]:text-destructive data-disabled:opacity-50 data-[variant=destructive]:hover:bg-destructive/10 data-[variant=destructive]:hover:text-destructive dark:data-[variant=destructive]:hover:bg-destructive/20 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 data-[variant=destructive]:*:[svg]:text-destructive!",
+        className
+      )}
+      data-inset={inset}
+      data-radix-collection-item
+      data-slot="dropdown-menu-dialog-trigger"
+      data-variant={variant}
+      role="menuitem"
+      tabIndex={-1}
+      {...props}
+    />
+  )
+}
+
+export function EditTitleDialog({
+  currentTitle,
+  children,
+  chatId,
+}: {
+  currentTitle: string
+  children: React.ReactNode
+  chatId: Id<"chats_v0">
+}) {
+  const [open, setOpen] = useState(false)
+  const updateTitle = useMutation(api.v0.chats.updateTitle)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSave = async () => {
+    const newTitle = inputRef.current?.value ?? ""
+    if (newTitle !== currentTitle) {
+      await updateTitle({ id: chatId, title: newTitle })
+    }
+    setOpen(false)
+  }
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Title</DialogTitle>
+          <DialogDescription>Change the title of this chat.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="title">Title</Label>
+            <Input defaultValue={currentTitle} id="title" ref={inputRef} />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleSave}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

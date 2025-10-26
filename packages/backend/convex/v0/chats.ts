@@ -105,3 +105,14 @@ export const del = mutation({
     await ctx.db.delete(chat._id)
   },
 })
+
+export const updateTitle = mutation({
+  args: {
+    id: v.id("chats_v0"),
+    title: v.string(),
+  },
+  handler: async (ctx, { id, title }) => {
+    const chat = await getAuthorizedChatOrThrow(ctx, { id })
+    await ctx.db.patch(chat._id, { title: title.slice(0, 100) })
+  },
+})

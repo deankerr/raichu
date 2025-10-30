@@ -148,7 +148,7 @@ function Main() {
          */}
         {activeTab?.componentType === "chat" && (
           <Chat
-            chatId={activeTab.componentId as Id<"chats_v0">}
+            chatId={activeTab.componentId as Id<"chats">}
             key={activeTab.tabId}
             stateKey={activeTab.componentId}
             tabId={activeTab.tabId}

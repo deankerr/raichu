@@ -1,7 +1,6 @@
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
-import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import { PanelRightCloseIcon, PanelRightOpenIcon } from "lucide-react"
-import { useEffect } from "react"
 import { Toggle } from "@/components/ui/toggle"
 import { useWorkspaceContext } from "../provider"
 import { Workspace } from "../workspace"
@@ -17,30 +16,30 @@ export function Chat({
   stateKey,
 }: {
   tabId: string
-  chatId?: Id<"chats_v0">
+  chatId?: Id<"chats">
   stateKey: string
 }) {
   const { controls } = useWorkspaceContext()
   const chat = useChat(chatId ?? "")
 
-  const [tabState] = useTabLocalState(stateKey)
+  // const [tabState] = useTabLocalState(stateKey)
 
-  // Get setters for chat settings
-  const setModelId = useSetAtom(tabState.modelId)
-  const setTemperature = useSetAtom(tabState.temperature)
-  const setMaxOutputTokens = useSetAtom(tabState.maxOutputTokens)
-  const setInstructions = useSetAtom(tabState.instructions)
+  // // Get setters for chat settings
+  // const setModelId = useSetAtom(tabState.modelId)
+  // const setTemperature = useSetAtom(tabState.temperature)
+  // const setMaxOutputTokens = useSetAtom(tabState.maxOutputTokens)
+  // const setInstructions = useSetAtom(tabState.instructions)
 
-  // Sync chat settings with local state when chat is loaded
-  useEffect(() => {
-    if (!chat) return
+  // // Sync chat settings with local state when chat is loaded
+  // useEffect(() => {
+  //   if (!chat) return
 
-    // Update local state with chat settings from the backend
-    if (chat.modelId !== undefined) setModelId(chat.modelId)
-    if (chat.temperature !== undefined) setTemperature(chat.temperature)
-    if (chat.maxOutputTokens !== undefined) setMaxOutputTokens(chat.maxOutputTokens)
-    if (chat.instructions !== undefined) setInstructions(chat.instructions)
-  }, [chat, setModelId, setTemperature, setMaxOutputTokens, setInstructions])
+  //   // Update local state with chat settings from the backend
+  //   if (chat.modelId !== undefined) setModelId(chat.modelId)
+  //   if (chat.temperature !== undefined) setTemperature(chat.temperature)
+  //   if (chat.maxOutputTokens !== undefined) setMaxOutputTokens(chat.maxOutputTokens)
+  //   if (chat.instructions !== undefined) setInstructions(chat.instructions)
+  // }, [chat, setModelId, setTemperature, setMaxOutputTokens, setInstructions])
 
   const handleSubmit = useSendMessage({
     stateKey,
@@ -60,7 +59,7 @@ export function Chat({
       <Workspace.Stack>
         <ChatTitleBar>
           <div />
-          <div className="text-center">{chat?.title || "Untitled Chat"}</div>
+          <div className="text-center">{chat?.label || "Untitled Chat"}</div>
           <div className="text-right">
             <SidebarToggle stateKey={stateKey} />
           </div>

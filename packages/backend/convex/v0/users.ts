@@ -20,6 +20,7 @@ async function createAuthorizedUser(ctx: MutationCtx) {
   }
 
   const userId = await ctx.db.insert("users", {
+    updatedAt: Date.now(),
     tokenIdentifier: auth.tokenIdentifier,
   })
 

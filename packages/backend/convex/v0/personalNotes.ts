@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values"
 import type { Doc } from "../_generated/dataModel"
 import { mutation, type QueryCtx, query } from "../_generated/server"
+import { MAX_LABEL_LENGTH } from "../constants"
 import { getAuthorizedUser, getAuthorizedUserOrThrow, getOrCreateAuthorizedUser } from "./users"
 
 export type PersonalNoteDoc = Doc<"personalNotes">
@@ -88,13 +89,14 @@ export const create = mutation({
     const user = await getOrCreateAuthorizedUser(ctx)
 
     const contentId = await ctx.db.insert("personalNoteContents", {
+      updatedAt: Date.now(),
       content: args.content,
       userId: user._id,
     })
 
     const noteId = await ctx.db.insert("personalNotes", {
       userId: user._id,
-      title: args.title.slice(0, 200),
+      label: args.title.slice(0, MAX_LABEL_LENGTH),
       contentId,
       updatedAt: Date.now(),
     })
@@ -106,7 +108,7 @@ export const create = mutation({
 export const update = mutation({
   args: {
     id: v.string(),
-    title: v.optional(v.string()),
+    label: v.optional(v.string()),
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -116,9 +118,10 @@ export const update = mutation({
       updatedAt: Date.now(),
     }
 
-    if (args.title !== undefined) {
-      updates.title = args.title.slice(0, 200)
+    if (args.label !== undefined) {
+      updates.label = args.label.slice(0, MAX_LABEL_LENGTH)
     }
+
     if (args.content !== undefined) {
       await getAuthorizedPersonalNoteContentOrThrow(ctx, {
         id: note.contentId,

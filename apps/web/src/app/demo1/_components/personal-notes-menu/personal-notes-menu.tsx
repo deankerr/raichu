@@ -85,13 +85,13 @@ export function PersonalNotesMenu({ children, className, ...props }: React.Compo
                   controls.addTab({
                     componentType: "personal-note",
                     componentId: note._id,
-                    title: note.title,
+                    title: note.label,
                   })
                 }
               }}
-              title={note.title}
+              title={note.label}
             >
-              {note.title}
+              {note.label}
             </NoteMenuButton>
           )
         })}
@@ -222,7 +222,7 @@ export function EditTitleDialog({
   const handleSave = async () => {
     const newTitle = inputRef.current?.value ?? ""
     if (newTitle !== currentTitle) {
-      await updateNote({ id: noteId, title: newTitle })
+      await updateNote({ id: noteId, label: newTitle })
     }
     setOpen(false)
   }

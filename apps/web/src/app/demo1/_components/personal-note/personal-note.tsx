@@ -108,7 +108,7 @@ export function PersonalNote({ tabId, noteId }: { tabId: string; noteId?: Id<"pe
     <Workspace.Group>
       <Workspace.Stack>
         <div className="flex items-center justify-between border-b px-4 py-2">
-          <div className="font-medium">{note?.title || "New Note"}</div>
+          <div className="font-medium">{note?.label || "New Note"}</div>
           <div className="flex gap-2">
             <Button disabled={!hasUnsavedChanges} onClick={handleSave} size="sm" variant="outline">
               <SaveIcon />

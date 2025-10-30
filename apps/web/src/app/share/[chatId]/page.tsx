@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner"
 
 export default function Page({ params }: { params: Promise<{ chatId: string }> }) {
   const { chatId } = use(params)
-  const chat = useChat(chatId as Id<"chats_v0">)
+  const chat = useChat(chatId as Id<"chats">)
   const { messages } = useThread(chat?.threadId)
 
   if (chat === null) {
@@ -30,7 +30,7 @@ export default function Page({ params }: { params: Promise<{ chatId: string }> }
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4.5 py-8">
         <div className="mx-auto mb-6 max-w-3xl space-y-1">
-          <h1 className="font-semibold text-2xl">{chat.title}</h1>
+          <h1 className="font-semibold text-2xl">{chat.label}</h1>
           <p className="flex items-center gap-1 text-muted-foreground text-sm">
             <SparklesIcon className="size-3" />
             {/** biome-ignore lint/performance/useTopLevelRegex: please */}
@@ -47,7 +47,7 @@ export default function Page({ params }: { params: Promise<{ chatId: string }> }
 
           {messages.results.map((message) => (
             <ChatMessage
-              chatId={chatId as Id<"chats_v0">}
+              chatId={chatId as Id<"chats">}
               isLatestMessage={message.id === messages.results.at(-1)?.id}
               key={message.id}
               message={message}

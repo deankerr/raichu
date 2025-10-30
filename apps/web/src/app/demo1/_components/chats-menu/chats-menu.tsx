@@ -60,7 +60,7 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
             (tab) => tab.componentType === "chat" && tab.componentId === chat._id
           )
           const isActive = activeTab?.componentType === "chat" && activeTab.componentId === chat._id
-          const title = chat.title || "Untitled Chat"
+          const title = chat?.label || "Untitled Chat"
 
           return (
             <ChatMenuButton
@@ -99,7 +99,7 @@ export function ChatMenuButton({
   ...props
 }: {
   isActive?: boolean
-  chatId: Id<"chats_v0">
+  chatId: Id<"chats">
   title: string
 } & React.ComponentProps<"button">) {
   const deleteChat = useMutation(api.v0.chats.del)
@@ -208,16 +208,16 @@ export function EditTitleDialog({
 }: {
   currentTitle: string
   children: React.ReactNode
-  chatId: Id<"chats_v0">
+  chatId: Id<"chats">
 }) {
   const [open, setOpen] = useState(false)
-  const updateTitle = useMutation(api.v0.chats.updateTitle)
+  const updateTitle = useMutation(api.v0.chats.update)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSave = async () => {
     const newTitle = inputRef.current?.value ?? ""
     if (newTitle !== currentTitle) {
-      await updateTitle({ id: chatId, title: newTitle })
+      await updateTitle({ id: chatId, label: newTitle })
     }
     setOpen(false)
   }

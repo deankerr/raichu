@@ -9,11 +9,9 @@
  */
 
 import type * as constants from "../constants.js";
+import type * as dev from "../dev.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as playground from "../playground.js";
-import type * as todoLists from "../todoLists.js";
-import type * as todoTools from "../todoTools.js";
-import type * as todos from "../todos.js";
 import type * as utils from "../utils.js";
 import type * as v0_agents from "../v0/agents.js";
 import type * as v0_chats from "../v0/chats.js";
@@ -38,11 +36,9 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   constants: typeof constants;
+  dev: typeof dev;
   healthCheck: typeof healthCheck;
   playground: typeof playground;
-  todoLists: typeof todoLists;
-  todoTools: typeof todoTools;
-  todos: typeof todos;
   utils: typeof utils;
   "v0/agents": typeof v0_agents;
   "v0/chats": typeof v0_chats;

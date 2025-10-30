@@ -11,7 +11,7 @@ export async function generateMetadata({
   const { chatId } = await params
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
-  const chat = await convex.query(api.v0.chats.get, { id: chatId as Id<"chats_v0"> })
+  const chat = await convex.query(api.v0.chats.get, { id: chatId as Id<"chats"> })
 
   return {
     title: chat?.title,

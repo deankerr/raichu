@@ -1,9 +1,11 @@
-# Agents: Convex
+# Convex
 
 - Do NOT try to run the dev server or compile functions/API routes. It is not necessary.
 - The contents of the convex directory must successfully type check in order for the dev server to work.
 - Files in the Convex folder cannot use hyphens; a different file naming convention may be necessary.
 - Share args/returns validators between convex functions rather than redefining them each time.
+- Use the prefix "v" to indicate a shared validator, e.g. "vNewChatArgs".
+- Convex has first class support for objects as fields on documents, including indexes on nested fields.
 
 ## Utilities
 

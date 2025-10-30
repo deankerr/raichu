@@ -13,7 +13,7 @@ export function ChatConversation({
   chatId,
   children,
 }: {
-  chatId: Id<"chats_v0">
+  chatId: Id<"chats">
   children?: React.ReactNode
 }) {
   const chat = useChat(chatId)

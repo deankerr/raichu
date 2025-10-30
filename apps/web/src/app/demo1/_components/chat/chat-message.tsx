@@ -73,7 +73,7 @@ export function ChatMessage({
   ...props
 }: {
   message: UIMessage
-  chatId: Id<"chats_v0">
+  chatId: Id<"chats">
   isLatestMessage: boolean
   showActions?: boolean
 } & React.ComponentProps<"div">) {

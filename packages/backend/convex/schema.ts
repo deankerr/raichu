@@ -1,53 +1,80 @@
 import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 
+const vLanguageModelSettings = v.object({
+  modelId: v.string(), // e.g. "deepseek/deepseek-r1"
+  temperature: v.optional(v.number()),
+  topP: v.optional(v.number()),
+  maxOutputTokens: v.optional(v.number()),
+})
+
+export const vAgentSettings = v.object({
+  name: v.optional(v.string()), // e.g. "Web Dev Expert", fallback to model name e.g. "Deepseek R1"
+  instructions: v.optional(v.string()), // system prompt
+  // ... tools available?
+  // ... memories?
+})
+
 export default defineSchema({
-  todoLists: defineTable({
-    name: v.string(),
-    userId: v.string(),
-    description: v.optional(v.string()),
-    updatedAt: v.optional(v.number()),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_and_name", ["userId", "name"]),
+  users: defineTable({
+    updatedAt: v.number(),
+    tokenIdentifier: v.string(),
 
-  todos: defineTable({
-    text: v.string(),
-    completed: v.boolean(),
-    userId: v.string(),
-    listId: v.id("todoLists"),
-    priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"))),
-    completedAt: v.optional(v.number()),
-  })
-    .index("by_user_and_list", ["userId", "listId"])
-    .index("by_list", ["listId"])
-    .index("by_user_and_completed", ["userId", "completed"]),
+    // TODO:
+    // defaults: v.object({
+    //   languageModelPresetId: v.optional(v.id("languageModelPresets")),
+    //   languageModelSettings: v.optional(vLanguageModelSettings),
+    //   agentPresetId: v.optional(v.id("agentPresets")),
+    //   agentSettings: v.optional(vAgentSettings),
+    // }),
+  }).index("by_tokenIdentifier", ["tokenIdentifier"]),
 
-  chats_v0: defineTable({
+  chats: defineTable({
+    updatedAt: v.number(),
     userId: v.id("users"),
     threadId: v.string(),
 
-    title: v.string(),
+    label: v.string(),
+    languageModelPresetId: v.optional(v.id("languageModelPresets")),
+    languageModelSettings: v.optional(vLanguageModelSettings),
+    agentPresetId: v.optional(v.id("agentPresets")),
+    agentSettings: v.optional(vAgentSettings),
 
-    modelId: v.string(),
-    instructions: v.optional(v.string()),
-    temperature: v.optional(v.number()),
-    maxOutputTokens: v.optional(v.number()),
+    // ... tools available?
+    // ... memories?
+  })
+    .index("by_userId", ["userId"])
+    .index("by_languageModelPresetId", ["languageModelPresetId"])
+    .index("by_agentPresetId", ["agentPresetId"]),
+
+  languageModelPresets: defineTable({
+    updatedAt: v.number(),
+    userId: v.id("users"),
+
+    label: v.string(),
+    ...vLanguageModelSettings.fields,
+  }).index("by_userId", ["userId"]),
+
+  agentPresets: defineTable({
+    updatedAt: v.number(),
+    userId: v.id("users"),
+
+    label: v.string(),
+    ...vAgentSettings.fields,
   }).index("by_userId", ["userId"]),
 
   personalNotes: defineTable({
-    userId: v.id("users"),
-    title: v.string(),
-    contentId: v.id("personalNoteContents"),
     updatedAt: v.number(),
+    userId: v.id("users"),
+
+    contentId: v.id("personalNoteContents"),
+    label: v.string(),
   }).index("by_userId", ["userId"]),
 
   personalNoteContents: defineTable({
-    content: v.string(),
+    updatedAt: v.number(),
     userId: v.id("users"),
-  }).index("by_userId", ["userId"]),
 
-  users: defineTable({
-    tokenIdentifier: v.string(),
-  }).index("by_tokenIdentifier", ["tokenIdentifier"]),
+    content: v.string(),
+  }).index("by_userId", ["userId"]),
 })

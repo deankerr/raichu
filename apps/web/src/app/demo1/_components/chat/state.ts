@@ -3,7 +3,7 @@ import { api } from "@raichu/backend/convex/_generated/api"
 import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import { DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_TEMPERATURE } from "@raichu/backend/convex/constants"
 import { useMutation, useQuery } from "convex/react"
-import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
+import { atom, useAtom, useSetAtom } from "jotai"
 import { atomFamily } from "jotai/utils"
 import { toast } from "sonner"
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input"
@@ -45,18 +45,18 @@ export const tabLocalStateFamily = atomFamily(
   (a, b) => a.id === b.id
 )
 
-const readChatArgsAtom = atom((get) => ({
-  read: (id: string) => {
-    const localState = get(tabLocalStateFamily({ id }))
+// const readChatArgsAtom = atom((get) => ({
+//   read: (id: string) => {
+//     const localState = get(tabLocalStateFamily({ id }))
 
-    return {
-      modelId: get(localState.modelId),
-      temperature: get(localState.temperature),
-      maxOutputTokens: get(localState.maxOutputTokens),
-      instructions: get(localState.instructions),
-    }
-  },
-}))
+//     return {
+//       modelId: get(localState.modelId),
+//       temperature: get(localState.temperature),
+//       maxOutputTokens: get(localState.maxOutputTokens),
+//       instructions: get(localState.instructions),
+//     }
+//   },
+// }))
 
 export function useTabLocalState(stateKey: string) {
   return useAtom(tabLocalStateFamily({ id: stateKey }))
@@ -78,14 +78,14 @@ export function cleanupTabLocalState(stateKey: string) {
 
 export function useSendMessage(args: {
   stateKey: string
-  chatId?: Id<"chats_v0">
-  onSuccess?: (result: { chatId: Id<"chats_v0"> }) => void
+  chatId?: Id<"chats">
+  onSuccess?: (result: { chatId: Id<"chats"> }) => void
 }) {
   const clearInput = useClearInput(args.stateKey)
   const createChat = useMutation(api.v0.chats.create)
   const sendMessage = useMutation(api.v0.messages.send)
 
-  const chatArgsReader = useAtomValue(readChatArgsAtom)
+  // const chatArgsReader = useAtomValue(readChatArgsAtom)
 
   const handleSubmit = async (message: PromptInputMessage, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -101,16 +101,16 @@ export function useSendMessage(args: {
       /* Create new chat if needed */
       if (!chatId) {
         const result = await createChat({
-          title: messageText.slice(0, 100),
+          label: messageText.slice(0, 100),
         })
         chatId = result.chatId
       }
 
-      const chatArgs = chatArgsReader.read(args.stateKey)
+      // const chatArgs = chatArgsReader.read(args.stateKey)
 
       const sendMessageArgs = {
-        ...chatArgs,
-        content: messageText,
+        respond: true,
+        prompt: messageText,
         chatId,
       }
 

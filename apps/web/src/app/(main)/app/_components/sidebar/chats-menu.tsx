@@ -5,6 +5,7 @@ import {
   EditIcon,
   MessagesSquareIcon,
   MoreHorizontalIcon,
+  PlusIcon,
   ShareIcon,
   TrashIcon,
 } from "lucide-react"
@@ -30,16 +31,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
-import { useWorkspaceContext } from "../provider"
+import { useWorkspace, workspaceSelectors } from "../workspace/workspace"
 
 export function ChatsMenu({ children, className, ...props }: React.ComponentProps<"div">) {
   const chats = useQuery(api.v0.chats.list)
-  const { tabs, activeTab, controls } = useWorkspaceContext()
+  const openInMain = useWorkspace((state) => state.openInMain)
+  const activeMainView = useWorkspace(workspaceSelectors.activeMainView)
+
+  const handleNewChat = () => {
+    openInMain("chat", undefined, "New Chat", MessagesSquareIcon)
+  }
 
   return (
     <div className={cn("flex flex-col gap-2 p-2", className)} {...props}>
-      <div className="px-2 py-1">
+      <div className="flex items-center justify-between px-2 py-1">
         <div className="font-medium text-sidebar-foreground/70 text-xs">Chats</div>
+        <Button onClick={handleNewChat} size="icon-sm" variant="ghost">
+          <PlusIcon />
+        </Button>
       </div>
 
       <div className="flex flex-1 flex-col gap-1">
@@ -56,28 +65,16 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
         )}
 
         {chats?.map((chat) => {
-          const existingTab = tabs.find(
-            (tab) => tab.componentType === "chat" && tab.componentId === chat._id
-          )
-          const isActive = activeTab?.componentType === "chat" && activeTab.componentId === chat._id
           const title = chat?.label || "Untitled Chat"
+          const isActive =
+            activeMainView?.kind === "chat" && activeMainView?.resourceId === chat._id
 
           return (
             <ChatMenuButton
               chatId={chat._id}
               isActive={isActive}
               key={chat._id}
-              onClick={() => {
-                if (existingTab) {
-                  controls.setActiveTab(existingTab.tabId)
-                } else {
-                  controls.addTab({
-                    componentType: "chat",
-                    componentId: chat._id,
-                    title,
-                  })
-                }
-              }}
+              onClick={() => openInMain("chat", chat._id, title, MessagesSquareIcon)}
               title={title}
             >
               {title}
@@ -103,15 +100,12 @@ export function ChatMenuButton({
   title: string
 } & React.ComponentProps<"button">) {
   const deleteChat = useMutation(api.v0.chats.del)
-  const { tabs, controls } = useWorkspaceContext()
+  const closeResource = useWorkspace((state) => state.closeResource)
 
   const handleDelete = () => {
     deleteChat({ id: chatId })
-    // Find and remove any tab that might be open for this chat
-    const chatTab = tabs.find((tab) => tab.componentType === "chat" && tab.componentId === chatId)
-    if (chatTab) {
-      controls.removeTab(chatTab.tabId)
-    }
+    // Close any open views for this chat
+    closeResource(chatId)
   }
 
   const handleShare = () => {

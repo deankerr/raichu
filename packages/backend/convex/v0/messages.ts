@@ -78,6 +78,14 @@ export const send = mutation({
       chatId: chat._id,
     })
 
+    if (!chat.label) {
+      await ctx.scheduler.runAfter(0, internal.v0.agents.generateChatLabel, {
+        chatId,
+        userId: user._id,
+        messageText: prompt,
+      })
+    }
+
     return { messageId }
   },
 })

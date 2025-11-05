@@ -1,18 +1,25 @@
 "use client"
 
-import type { Id } from "@raichu/backend/convex/_generated/dataModel"
-import { SparklesIcon } from "lucide-react"
+import { useUIMessages } from "@convex-dev/agent/react"
+import { api } from "@raichu/backend/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { notFound } from "next/navigation"
 import { use } from "react"
-import { ChatMessage } from "@/app/demo1/_components/chat/chat-message"
-import { useChat, useThread } from "@/app/demo1/_components/chat/state"
+import { ChatMessage } from "@/app/(main)/app/_components/chat/chat-message"
 import { Loader } from "@/components/ai-elements/loader"
 import { Spinner } from "@/components/ui/spinner"
 
 export default function Page({ params }: { params: Promise<{ chatId: string }> }) {
   const { chatId } = use(params)
-  const chat = useChat(chatId as Id<"chats">)
-  const { messages } = useThread(chat?.threadId)
+  const chat = useQuery(api.v0.chats.get, { id: chatId })
+  const messages = useUIMessages(
+    api.v0.messages.list,
+    chat?.threadId ? { threadId: chat.threadId } : "skip",
+    {
+      initialNumItems: 25,
+      stream: true,
+    }
+  )
 
   if (chat === null) {
     notFound()
@@ -20,7 +27,7 @@ export default function Page({ params }: { params: Promise<{ chatId: string }> }
 
   if (chat === undefined) {
     return (
-      <div className="grid min-h-screen place-content-center bg-background text-muted-foreground">
+      <div className="grid min-h-screen place-content-center bg-background">
         <Spinner />
       </div>
     )
@@ -32,8 +39,7 @@ export default function Page({ params }: { params: Promise<{ chatId: string }> }
         <div className="mx-auto mb-6 max-w-3xl space-y-1">
           <h1 className="font-semibold text-2xl">{chat.label}</h1>
           <p className="flex items-center gap-1 text-muted-foreground text-sm">
-            <SparklesIcon className="size-3" />
-            {/** biome-ignore lint/performance/useTopLevelRegex: please */}
+            # {/** biome-ignore lint/performance/useTopLevelRegex: please */}
             {new Date(chat._creationTime).toString().replace(/\(.+/, "")}
           </p>
         </div>
@@ -47,7 +53,6 @@ export default function Page({ params }: { params: Promise<{ chatId: string }> }
 
           {messages.results.map((message) => (
             <ChatMessage
-              chatId={chatId as Id<"chats">}
               isLatestMessage={message.id === messages.results.at(-1)?.id}
               key={message.id}
               message={message}

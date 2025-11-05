@@ -1,6 +1,5 @@
 import type { UIMessage } from "@convex-dev/agent/react"
 import { api } from "@raichu/backend/convex/_generated/api"
-import type { Id } from "@raichu/backend/convex/_generated/dataModel"
 import type { ToolUIPart } from "ai"
 import { useMutation } from "convex/react"
 import {
@@ -27,58 +26,19 @@ const roleIcons = {
   system: <DroneIcon />,
 } as const
 
-const MIN_DECIMAL_PLACES = 2
-const MAX_DECIMAL_PLACES = 8
-
-function MessageMetadata({
-  openrouter,
-  className,
-  ...props
-}: {
-  openrouter: ReturnType<typeof getOpenRouterMetadata>
-} & React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "px-1 py-1 font-mono text-[10px] text-muted-foreground empty:hidden",
-        className
-      )}
-      {...props}
-    >
-      {openrouter && (
-        <>
-          {`${openrouter.model} via ${openrouter.provider} `}
-          {openrouter.usage.promptTokens > 0 &&
-            `Input: ${openrouter.usage.promptTokens.toLocaleString()}`}
-          {openrouter.usage.completionTokens > 0 &&
-            ` Output: ${openrouter.usage.completionTokens.toLocaleString()}`}
-          {openrouter.usage.reasoningTokens > 0 &&
-            ` Reasoning: ${openrouter.usage.reasoningTokens.toLocaleString()}`}
-          {openrouter.usage.cachedTokens > 0 &&
-            ` Cache: ${openrouter.usage.cachedTokens.toLocaleString()}`}
-          {openrouter.usage.cost > 0 &&
-            ` $${openrouter.usage.cost.toLocaleString("en-US", { minimumFractionDigits: MIN_DECIMAL_PLACES, maximumFractionDigits: MAX_DECIMAL_PLACES })}`}
-        </>
-      )}
-    </div>
-  )
-}
-
 export function ChatMessage({
   message,
-  chatId,
   isLatestMessage,
   showActions = true,
   className,
   ...props
 }: {
   message: UIMessage
-  chatId: Id<"chats">
   isLatestMessage: boolean
   showActions?: boolean
 } & React.ComponentProps<"div">) {
   const deleteMessage = useMutation(api.v0.messages.del)
-  const openrouter = getOpenRouterMetadata(message.parts)
+
   return (
     <div
       className={cn("group relative", className)}
@@ -196,7 +156,7 @@ export function ChatMessage({
           </Actions>
         )}
 
-        <MessageMetadata openrouter={openrouter} />
+        <MessageMetadata message={message} />
       </div>
     </div>
   )
@@ -227,11 +187,11 @@ const OpenRouterMetadataSchema = z.object({
 
 function extractOpenRouterMetadata(part: Record<string, unknown>) {
   try {
-    if ("providerMetadata" in part) {
+    if ("providerMetadata" in part && part.providerMetadata) {
       return OpenRouterMetadataSchema.parse(part.providerMetadata)
     }
 
-    if ("callProviderMetadata" in part) {
+    if ("callProviderMetadata" in part && part.callProviderMetadata) {
       return OpenRouterMetadataSchema.parse(part.callProviderMetadata)
     }
 
@@ -280,4 +240,39 @@ function getOpenRouterMetadata(parts: Record<string, unknown>[] = []) {
       totalTokens: totalPromptTokens + totalCompletionTokens,
     },
   }
+}
+
+function MessageMetadata({
+  message,
+  className,
+  ...props
+}: {
+  message: UIMessage
+} & React.ComponentProps<"div">) {
+  const openrouter = getOpenRouterMetadata(message.parts)
+  return (
+    <div
+      className={cn(
+        "px-1 py-1 font-mono text-[10px] text-muted-foreground empty:hidden",
+        className
+      )}
+      {...props}
+    >
+      {openrouter && (
+        <>
+          {`${openrouter.model} via ${openrouter.provider} `}
+          {openrouter.usage.promptTokens > 0 &&
+            `Input: ${openrouter.usage.promptTokens.toLocaleString()}`}
+          {openrouter.usage.completionTokens > 0 &&
+            ` Output: ${openrouter.usage.completionTokens.toLocaleString()}`}
+          {openrouter.usage.reasoningTokens > 0 &&
+            ` Reasoning: ${openrouter.usage.reasoningTokens.toLocaleString()}`}
+          {openrouter.usage.cachedTokens > 0 &&
+            ` Cache: ${openrouter.usage.cachedTokens.toLocaleString()}`}
+          {openrouter.usage.cost > 0 &&
+            ` $${openrouter.usage.cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 8 })}`}
+        </>
+      )}
+    </div>
+  )
 }

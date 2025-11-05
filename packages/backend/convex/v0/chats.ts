@@ -7,10 +7,12 @@ import type { Doc } from "../_generated/dataModel"
 import { mutation, type QueryCtx, query } from "../_generated/server"
 import { MAX_LABEL_LENGTH } from "../constants"
 import schema from "../schema"
+import { nullToUndefined } from "./lib/utils"
 import { getAuthorizedUser, getAuthorizedUserOrThrow, getOrCreateAuthorizedUser } from "./users"
 
 export type ChatDoc = Doc<"chats">
 const vChatTable = schema.tables.chats.validator
+const vChatConfigurableFields = omit(vChatTable.fields, ["updatedAt", "userId", "threadId"])
 
 export async function getAuthorizedChatOrThrow(ctx: QueryCtx, args: { id: string }) {
   const user = await getAuthorizedUserOrThrow(ctx)
@@ -35,9 +37,12 @@ export async function getAuthorizedChatOrThrow(ctx: QueryCtx, args: { id: string
 
 export const get = query({
   args: {
-    id: v.id("chats"),
+    id: v.string(),
   },
-  handler: async (ctx, args) => await getAuthorizedChatOrThrow(ctx, args),
+  handler: async (ctx, args) => {
+    const chatId = ctx.db.normalizeId("chats", args.id)
+    return chatId ? await ctx.db.get(chatId) : null
+  },
 })
 
 export const list = query({
@@ -56,10 +61,8 @@ export const list = query({
   },
 })
 
-const vCreateChatArgs = partial(omit(vChatTable.fields, ["updatedAt", "userId", "threadId"]))
-
 export const create = mutation({
-  args: vCreateChatArgs,
+  args: partial(vChatConfigurableFields),
   handler: async (ctx, args) => {
     const user = await getOrCreateAuthorizedUser(ctx)
 
@@ -79,24 +82,24 @@ export const create = mutation({
   },
 })
 
-const vUpdateChatArgs = {
-  id: v.id("chats"),
-  ...partial(omit(vChatTable.fields, ["updatedAt", "userId", "threadId"])),
-  languageModelPresetId: v.optional(nullable(v.id("languageModelPresets"))),
-  agentPresetId: v.optional(nullable(v.id("agentPresets"))),
-}
-
 export const update = mutation({
-  args: vUpdateChatArgs,
-  handler: async (ctx, { id, ...args }) => {
+  args: {
+    id: v.id("chats"),
+    fields: v.object(
+      partial({
+        ...vChatConfigurableFields,
+        languageModelPresetId: nullable(v.id("languageModelPresets")),
+        agentPresetId: nullable(v.id("agentPresets")),
+      })
+    ),
+  },
+  handler: async (ctx, { id, fields }) => {
     const chat = await getAuthorizedChatOrThrow(ctx, { id })
-
-    const { languageModelPresetId, agentPresetId, ...fields } = args
 
     await ctx.db.patch(chat._id, {
       ...fields,
-      languageModelPresetId: languageModelPresetId === null ? undefined : languageModelPresetId,
-      agentPresetId: agentPresetId === null ? undefined : agentPresetId,
+      languageModelPresetId: nullToUndefined(fields.languageModelPresetId),
+      agentPresetId: nullToUndefined(fields.agentPresetId),
     })
   },
 })

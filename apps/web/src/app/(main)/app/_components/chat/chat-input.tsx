@@ -19,22 +19,18 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { chatModelIds } from "./data"
-import { useTabLocalState } from "./state"
+import { useChat, useSendMessage } from "./provider"
 
-export function ChatInput({
-  stateKey,
-  onSubmit,
-}: {
-  stateKey: string
-  onSubmit: React.ComponentProps<typeof PromptInput>["onSubmit"]
-}) {
-  const [tabState] = useTabLocalState(stateKey)
-  const [input, setInput] = useAtom(tabState.input)
-  const [modelId = chatModelIds[0].value, setModelId] = useAtom(tabState.modelId)
+export function ChatInput() {
+  const chat = useChat()
+  const sendMessage = useSendMessage()
+  const [input, setInput] = useAtom(chat.inputAtom)
+  const [languageModelSettings, setLanguageModelSettings] = useAtom(chat.languageModelSettingsAtom)
+  const modelId = languageModelSettings?.modelId || chatModelIds[0].value
 
   return (
     <div className="bg-background">
-      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={onSubmit}>
+      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={sendMessage}>
         <PromptInputBody>
           <PromptInputAttachments>
             {(attachment) => <PromptInputAttachment data={attachment} />}
@@ -58,7 +54,7 @@ export function ChatInput({
             </PromptInputButton> */}
             <PromptInputModelSelect
               onValueChange={(value) => {
-                setModelId(value)
+                setLanguageModelSettings((prev) => ({ ...prev, modelId: value }))
               }}
               value={modelId}
             >

@@ -12,21 +12,15 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { chatModelIds } from "./data"
-import { useTabLocalState } from "./state"
+import { useChat } from "./provider"
 
-export function ChatSettings({
-  stateKey,
-  className,
-  ...props
-}: {
-  stateKey: string
-} & React.ComponentProps<"div">) {
-  const [tabState] = useTabLocalState(stateKey)
+export function ChatSettings({ className, ...props }: React.ComponentProps<"div">) {
+  const chat = useChat()
 
-  const [modelId, setModelId] = useAtom(tabState.modelId)
-  const [temperature, setTemperature] = useAtom(tabState.temperature)
-  const [maxOutputTokens, setMaxOutputTokens] = useAtom(tabState.maxOutputTokens)
-  const [instructions, setInstructions] = useAtom(tabState.instructions)
+  const [languageModelSettings, setLanguageModelSettings] = useAtom(chat.languageModelSettingsAtom)
+  const modelId = languageModelSettings?.modelId || chatModelIds[0].value
+
+  const [agentSettings, setAgentSettings] = useAtom(chat.agentSettingsAtom)
 
   return (
     <div className={cn("space-y-4 p-4", className)} {...props}>
@@ -36,7 +30,12 @@ export function ChatSettings({
       <Field>
         <FieldLabel htmlFor="model-select">Model</FieldLabel>
         <FieldContent>
-          <Select onValueChange={setModelId} value={modelId || chatModelIds[0].value}>
+          <Select
+            onValueChange={(value) =>
+              setLanguageModelSettings((prev) => ({ ...prev, modelId: value }))
+            }
+            value={modelId}
+          >
             <SelectTrigger className="w-full" id="model-select">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
@@ -53,16 +52,24 @@ export function ChatSettings({
 
       {/* Temperature */}
       <Field>
-        <FieldLabel htmlFor="temperature">Temperature: {temperature}</FieldLabel>
+        <FieldLabel htmlFor="temperature">
+          Temperature: {languageModelSettings?.temperature}
+        </FieldLabel>
         <FieldContent>
           <Slider
             className="w-full"
             id="temperature"
             max={2}
             min={0}
-            onValueChange={(value) => setTemperature(value[0])}
+            onValueChange={(value) => {
+              setLanguageModelSettings((prev) => ({
+                ...prev,
+                modelId,
+                temperature: value[0],
+              }))
+            }}
             step={0.1}
-            value={[temperature]}
+            value={[languageModelSettings?.temperature ?? 1]}
           />
         </FieldContent>
       </Field>
@@ -75,9 +82,15 @@ export function ChatSettings({
             id="max-tokens"
             max="4000"
             min="1"
-            onChange={(e) => setMaxOutputTokens(Number.parseInt(e.target.value, 10))}
+            onChange={(e) =>
+              setLanguageModelSettings((prev) => ({
+                ...prev,
+                modelId,
+                maxOutputTokens: Number.parseInt(e.target.value, 10),
+              }))
+            }
             type="number"
-            value={maxOutputTokens}
+            value={languageModelSettings?.maxOutputTokens}
           />
         </FieldContent>
       </Field>
@@ -88,10 +101,15 @@ export function ChatSettings({
         <FieldContent>
           <Textarea
             id="instructions"
-            onChange={(e) => setInstructions(e.target.value)}
+            onChange={(e) =>
+              setAgentSettings((prev) => ({
+                ...prev,
+                instructions: e.target.value,
+              }))
+            }
             placeholder="Enter system instructions for the AI..."
             rows={4}
-            value={instructions}
+            value={agentSettings?.instructions}
           />
         </FieldContent>
       </Field>

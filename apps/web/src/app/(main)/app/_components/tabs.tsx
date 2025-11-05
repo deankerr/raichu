@@ -1,6 +1,20 @@
 import { XIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+export function TabBar({ className, children, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 gap-1 overflow-x-auto overflow-y-hidden border-b p-1",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function TabButton({
   label,
   isActive,
@@ -23,7 +37,6 @@ export function TabButton({
           : "bg-background hover:bg-muted",
         className
       )}
-      data-slot="shell-dock-tab-button"
       {...props}
     >
       <button
@@ -74,7 +87,6 @@ export function TabIconButton({
           : "bg-background hover:bg-muted",
         className
       )}
-      data-slot="shell-dock-tab-icon-button"
       onClick={onClick}
       title={label}
       type="button"

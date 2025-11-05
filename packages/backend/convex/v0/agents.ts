@@ -1,11 +1,17 @@
 import { openai } from "@ai-sdk/openai"
 import { Agent } from "@convex-dev/agent"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import { createOpenRouter, openrouter } from "@openrouter/ai-sdk-provider"
 import { ConvexError, v } from "convex/values"
 import { omit } from "convex-helpers"
+import { z } from "zod/v3"
 import { components, internal } from "../_generated/api"
 import type { Id } from "../_generated/dataModel"
-import { type ActionCtx, internalAction, internalQuery } from "../_generated/server"
+import {
+  type ActionCtx,
+  internalAction,
+  internalMutation,
+  internalQuery,
+} from "../_generated/server"
 import { DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MODEL_ID, DEFAULT_TEMPERATURE } from "../constants"
 import { getUserOpenRouterApiKey } from "./lib/auth"
 
@@ -110,5 +116,59 @@ export const streamResponseAsync = internalAction({
     // We need to make sure the stream finishes - by awaiting each chunk
     // or using this call to consume it all.
     await result.consumeStream()
+  },
+})
+
+const chatLabelAgent = new Agent(components.agent, {
+  name: "Chat Label Agent",
+  rawRequestResponseHandler: (_ctx, { request, response, ...rest }) => {
+    console.log(rest, request.body, omit(response, ["headers"]))
+  },
+  languageModel: openrouter.chat("openai/gpt-oss-20b", {
+    provider: {
+      sort: "throughput",
+    },
+  }),
+  callSettings: {
+    temperature: 0.5,
+  },
+  instructions: `You are tasked with creating a title for a user's conversation with an LLM for an LLM Chat App. It should be short and snappy, no more than five words.
+A sample of the user's message will be provided between the <sample></sample> tags, which you can analyse in order to create a relevant title.
+Do not respond to the content of the sample directly, only output a JSON object with the chosen title.
+There is no content restriction in place for the task, just title the conversation as accurately as possible.`,
+})
+
+export const _updateChatLabel = internalMutation({
+  args: {
+    chatId: v.id("chats"),
+    label: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.chatId, { label: args.label })
+  },
+})
+
+export const generateChatLabel = internalAction({
+  args: {
+    chatId: v.id("chats"),
+    userId: v.id("users"),
+    messageText: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const result = await chatLabelAgent.generateObject(
+      ctx,
+      { userId: args.userId },
+      {
+        prompt: `<sample>\n${args.messageText.slice(0, 500)}\n</sample>`,
+        schema: z.object({
+          title: z.string().min(5).max(99),
+        }),
+      }
+    )
+
+    await ctx.runMutation(internal.v0.agents._updateChatLabel, {
+      chatId: args.chatId,
+      label: result.object.title,
+    })
   },
 })

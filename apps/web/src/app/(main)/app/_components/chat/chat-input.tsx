@@ -19,21 +19,18 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { chatModelIds } from "./data"
-import { useChat } from "./provider"
+import { useChat, useSendMessage } from "./provider"
 
-export function ChatInput({
-  onSubmit,
-}: {
-  onSubmit: React.ComponentProps<typeof PromptInput>["onSubmit"]
-}) {
+export function ChatInput() {
   const chat = useChat()
-  const [input, setInput] = useAtom(chat.input)
+  const sendMessage = useSendMessage()
+  const [input, setInput] = useAtom(chat.inputAtom)
   const [languageModelSettings, setLanguageModelSettings] = useAtom(chat.languageModelSettingsAtom)
   const modelId = languageModelSettings?.modelId || chatModelIds[0].value
 
   return (
     <div className="bg-background">
-      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={onSubmit}>
+      <PromptInput className="mx-auto max-w-3xl" globalDrop multiple onSubmit={sendMessage}>
         <PromptInputBody>
           <PromptInputAttachments>
             {(attachment) => <PromptInputAttachment data={attachment} />}

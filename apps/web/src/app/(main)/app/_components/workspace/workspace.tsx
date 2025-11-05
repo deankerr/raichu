@@ -1,7 +1,6 @@
 import { type LucideIcon, MessagesSquareIcon } from "lucide-react"
 import { nanoid } from "nanoid"
 import { create } from "zustand"
-import { cn } from "@/lib/utils"
 
 export type View = {
   id: string // Unique identifier for this instance (nanoid)
@@ -90,10 +89,10 @@ type WorkspaceActions = {
   setActiveView: (id: string) => void
 
   /**
-   * Update a view's resourceId
-   * Used when a new/unsaved resource gets saved and receives an ID
+   * Update a view's properties (except id)
+   * Used when a view's properties need to be updated (e.g., label, resourceId)
    */
-  updateViewResourceId: (viewId: string, resourceId: string) => void
+  updateView: (viewId: string, updates: Partial<Omit<View, "id">>) => void
 
   /**
    * Reorder views within an area (for drag-and-drop)
@@ -339,7 +338,7 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
     return locations
   },
 
-  updateViewResourceId: (viewId, resourceId) => {
+  updateView: (viewId, updates) => {
     set((state) => {
       // Find which area contains the view
       let area: "sidebar" | "main" | null = null
@@ -363,7 +362,7 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
       const updatedViews = [...areaState.views]
       updatedViews[viewIndex] = {
         ...updatedViews[viewIndex],
-        resourceId,
+        ...updates,
       }
 
       return {
@@ -412,7 +411,7 @@ export const useWorkspaceCommands = () => {
   const closeResource = useWorkspace((state) => state.closeResource)
   const openInMain = useWorkspace((state) => state.openInMain)
   const findViewLocations = useWorkspace((state) => state.findViewLocations)
-  const updateViewResourceId = useWorkspace((state) => state.updateViewResourceId)
+  const updateView = useWorkspace((state) => state.updateView)
 
   return {
     /**
@@ -434,11 +433,10 @@ export const useWorkspaceCommands = () => {
     isOpen: (resourceId: string) => findViewLocations(resourceId).length > 0,
 
     /**
-     * Update a view's resourceId
-     * Typically called when a new resource is saved and receives an ID
+     * Update a view's properties
+     * Typically called when a resource is saved and receives an ID, or when properties like label change
      */
-    updateResourceId: (viewId: string, resourceId: string) =>
-      updateViewResourceId(viewId, resourceId),
+    updateView: (viewId: string, updates: Partial<Omit<View, "id">>) => updateView(viewId, updates),
   }
 }
 
@@ -460,13 +458,3 @@ export const useWorkspaceCommands = () => {
  *   requestClose(docId)
  * }
  */
-
-export function WorkspaceArea({ className, children }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("grid grid-rows-[2.75rem_1fr] overflow-hidden not-first:border-l", className)}
-    >
-      {children}
-    </div>
-  )
-}

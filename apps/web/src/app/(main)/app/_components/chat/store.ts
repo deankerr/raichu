@@ -5,7 +5,7 @@ import { atomFamily } from "jotai/utils"
 function createChatAtom({ resourceKey, chat }: { resourceKey?: string; chat?: ChatDoc }) {
   return atom({
     resourceKey,
-    input: atom(""),
+    inputAtom: atom(""),
 
     chatId: chat?._id,
     threadId: chat?.threadId,
@@ -26,3 +26,5 @@ export function useChatResourceAtom(args: { resourceKey: string; chat?: ChatDoc 
 
 export type ChatAtom = ReturnType<typeof useChatResourceAtom>
 export type ChatAtomValue = ChatAtom[0]
+
+export const chatSidebarVisibleAtom = atom(true)

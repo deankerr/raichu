@@ -65,7 +65,7 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
         )}
 
         {chats?.map((chat) => {
-          const title = chat?.label || "Untitled Chat"
+          const label = chat?.label || "Untitled Chat"
           const isActive =
             activeMainView?.kind === "chat" && activeMainView?.resourceId === chat._id
 
@@ -74,10 +74,10 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
               chatId={chat._id}
               isActive={isActive}
               key={chat._id}
-              onClick={() => openInMain("chat", chat._id, title, MessagesSquareIcon)}
-              title={title}
+              label={label}
+              onClick={() => openInMain("chat", chat._id, label, MessagesSquareIcon)}
             >
-              {title}
+              {label}
             </ChatMenuButton>
           )
         })}
@@ -89,7 +89,7 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
 export function ChatMenuButton({
   isActive,
   chatId,
-  title,
+  label,
   children,
   className,
   onClick,
@@ -97,7 +97,7 @@ export function ChatMenuButton({
 }: {
   isActive?: boolean
   chatId: Id<"chats">
-  title: string
+  label: string
 } & React.ComponentProps<"button">) {
   const deleteChat = useMutation(api.v0.chats.del)
   const closeResource = useWorkspace((state) => state.closeResource)
@@ -145,7 +145,7 @@ export function ChatMenuButton({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="right" sideOffset={4}>
-          <EditTitleDialog chatId={chatId} currentTitle={title}>
+          <EditTitleDialog chatId={chatId} currentTitle={label}>
             <DropdownMenuDialogTrigger>
               <EditIcon className="size-3.5" />
               Edit Title

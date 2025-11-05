@@ -14,13 +14,7 @@ import { cn } from "@/lib/utils"
 import { chatModelIds } from "./data"
 import { useChat } from "./provider"
 
-export function ChatSettings({
-  stateKey,
-  className,
-  ...props
-}: {
-  stateKey: string
-} & React.ComponentProps<"div">) {
+export function ChatSettings({ className, ...props }: React.ComponentProps<"div">) {
   const chat = useChat()
 
   const [languageModelSettings, setLanguageModelSettings] = useAtom(chat.languageModelSettingsAtom)

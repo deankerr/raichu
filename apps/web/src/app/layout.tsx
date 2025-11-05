@@ -3,6 +3,7 @@ import { StackProvider, StackTheme } from "@stackframe/stack"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import ClientProviders from "@/app/client-providers"
+import { Toaster } from "@/components/ui/sonner"
 import { addEnvPrefix } from "@/lib/utils"
 import { stackClientApp } from "../stack/client"
 
@@ -34,7 +35,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <StackProvider app={stackClientApp}>
           <StackTheme>
-            <ClientProviders>{children}</ClientProviders>
+            <ClientProviders>
+              {children}
+              <Toaster richColors />
+            </ClientProviders>
           </StackTheme>
         </StackProvider>
       </body>

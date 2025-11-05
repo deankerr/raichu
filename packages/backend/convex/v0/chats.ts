@@ -37,9 +37,12 @@ export async function getAuthorizedChatOrThrow(ctx: QueryCtx, args: { id: string
 
 export const get = query({
   args: {
-    id: v.id("chats"),
+    id: v.string(),
   },
-  handler: async (ctx, args) => await getAuthorizedChatOrThrow(ctx, args),
+  handler: async (ctx, args) => {
+    const chatId = ctx.db.normalizeId("chats", args.id)
+    return chatId ? await ctx.db.get(chatId) : null
+  },
 })
 
 export const list = query({

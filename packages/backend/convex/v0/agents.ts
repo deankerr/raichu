@@ -124,11 +124,7 @@ const chatLabelAgent = new Agent(components.agent, {
   rawRequestResponseHandler: (_ctx, { request, response, ...rest }) => {
     console.log(rest, request.body, omit(response, ["headers"]))
   },
-  languageModel: openrouter.chat("openai/gpt-oss-20b", {
-    provider: {
-      sort: "throughput",
-    },
-  }),
+  languageModel: openrouter.chat("mistralai/mistral-small-3.2-24b-instruct"),
   callSettings: {
     temperature: 0.5,
   },
@@ -155,20 +151,31 @@ export const generateChatLabel = internalAction({
     messageText: v.string(),
   },
   handler: async (ctx, args) => {
-    const result = await chatLabelAgent.generateObject(
-      ctx,
-      { userId: args.userId },
-      {
-        prompt: `<sample>\n${args.messageText.slice(0, 500)}\n</sample>`,
-        schema: z.object({
-          title: z.string().min(5).max(99),
-        }),
-      }
-    )
+    try {
+      const result = await chatLabelAgent.generateObject(
+        ctx,
+        { userId: args.userId },
+        {
+          prompt: `<sample>\n${args.messageText.slice(0, 500)}\n</sample>`,
+          schema: z.object({
+            title: z.string().refine((val) => val.length >= 5 && val.length <= 128, {
+              message: "title must be between 5 and 128 characters.",
+            }),
+          }),
+        }
+      )
 
-    await ctx.runMutation(internal.v0.agents._updateChatLabel, {
-      chatId: args.chatId,
-      label: result.object.title,
-    })
+      await ctx.runMutation(internal.v0.agents._updateChatLabel, {
+        chatId: args.chatId,
+        label: result.object.title,
+      })
+    } catch (err) {
+      console.log(err)
+
+      await ctx.runMutation(internal.v0.agents._updateChatLabel, {
+        chatId: args.chatId,
+        label: args.messageText.slice(0, 128),
+      })
+    }
   },
 })

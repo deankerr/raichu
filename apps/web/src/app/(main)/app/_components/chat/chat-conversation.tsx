@@ -25,7 +25,12 @@ export function ChatConversation({ children }: { children?: React.ReactNode }) {
   const isInitialLoad = messages.status === "LoadingFirstPage" && chat.chatId
 
   return (
-    <Conversation className="flex flex-col overflow-hidden" initial="instant" resize="instant">
+    <Conversation
+      className="flex flex-col overflow-hidden"
+      initial="instant"
+      key={chat.threadId}
+      resize="instant"
+    >
       <ConversationContent className="mx-auto flex min-h-full max-w-3xl flex-col px-4.5">
         {!isInitialLoad && messages.results.length === 0 && (
           <ConversationEmptyState className="flex-1" />

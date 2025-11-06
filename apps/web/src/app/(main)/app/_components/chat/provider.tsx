@@ -13,7 +13,7 @@ function useChatFromList(chatId?: string) {
   return chats?.find((c) => c._id === chatId)
 }
 
-const ChatContext = createContext<ChatAtomValue | null>(null)
+const ChatContext = createContext<{ viewId: string; chatData: ChatAtomValue } | null>(null)
 
 export function ChatProvider({
   viewId,
@@ -32,33 +32,35 @@ export function ChatProvider({
   const updateView = useWorkspace((state) => state.updateView)
 
   useEffect(() => {
-    const label = chat?.label ?? "Untitled Chat"
+    const label = (chat?.label ?? "New Chat") || "Untitled Chat"
     setChatData((prev) => ({ ...prev, label }))
     updateView(viewId, { label })
   }, [chat?.label, setChatData, viewId, updateView])
 
-  return <ChatContext.Provider value={chatData}>{children}</ChatContext.Provider>
+  return <ChatContext.Provider value={{ viewId, chatData }}>{children}</ChatContext.Provider>
 }
 
 export function useChat() {
-  const chatData = use(ChatContext)
-  if (!chatData) {
+  const context = use(ChatContext)
+  if (!context) {
     throw new Error("useChat must be used within a ChatProvider")
   }
 
-  return chatData
+  return context.chatData
 }
 
 export function useSendMessage() {
   const createChat = useMutation(api.v0.chats.create)
   const updateChat = useMutation(api.v0.chats.update)
   const sendMessage = useMutation(api.v0.messages.send)
-  const chatData = use(ChatContext)
+  const updateView = useWorkspace((state) => state.updateView)
+  const context = use(ChatContext)
 
   return async (input: PromptInputMessage) => {
-    if (!chatData) {
+    if (!context) {
       throw new Error("useChat must be used within a ChatProvider")
     }
+    const chatData = context.chatData
 
     const languageModelSettings = store.get(chatData.languageModelSettingsAtom)
     const agentSettings = store.get(chatData.agentSettingsAtom)
@@ -70,8 +72,10 @@ export function useSendMessage() {
         chatId = chatData.chatId
         await updateChat({ id: chatId, fields: { languageModelSettings, agentSettings } })
       } else {
+        // new chat
         const { chatId: newChatId } = await createChat({ languageModelSettings, agentSettings })
         chatId = newChatId
+        updateView(context.viewId, { resourceId: newChatId })
       }
 
       await sendMessage({ chatId, prompt: input.text ?? "", respond: true })

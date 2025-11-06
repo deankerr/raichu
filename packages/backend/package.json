@@ -16,6 +16,7 @@
     "@convex-dev/agent": "^0.2.11",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@stackframe/stack": "^2.8.44",
+    "ai": "^5.0.86",
     "convex": "^1.28.0",
     "convex-helpers": "^0.1.104",
     "nanoid": "^5.1.6",

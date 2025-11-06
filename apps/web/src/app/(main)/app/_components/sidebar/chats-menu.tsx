@@ -65,7 +65,7 @@ export function ChatsMenu({ children, className, ...props }: React.ComponentProp
         )}
 
         {chats?.map((chat) => {
-          const label = chat?.label || "Untitled Chat"
+          const label = (chat?.label ?? "New Chat") || "Untitled Chat"
           const isActive =
             activeMainView?.kind === "chat" && activeMainView?.resourceId === chat._id
 
